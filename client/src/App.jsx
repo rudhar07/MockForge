@@ -1,19 +1,34 @@
 import React from 'react';
-import Navbar from './components/Navbar'; // import kiya navbar ko bd
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <BrowserRouter>
-      <Navbar />
-      <Routes>
-        {/* The '/' means this is our default home page */}
-        <Route path="/" element={<Login />} />
-        {/* The '/register' means this loads when the URL changes */}
-        <Route path="/register" element={<Register />} />
-      </Routes>
+      {/* We wrap the whole app in a flex-col so the background color stretches perfectly */}
+      <div className="min-h-screen flex flex-col bg-gray-50">
+        <Navbar />
+        
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+
+          {/* Protected Routes (You can only see these if our bouncer lets you in!) */}
+          <Route 
+            path="/" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+        </Routes>
+      </div>
     </BrowserRouter>
   );
 }
