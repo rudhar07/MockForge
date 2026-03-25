@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext'; // Added this line
 import { Link, useNavigate } from 'react-router-dom'; // 1. We imported useNavigate
 import { LogIn } from 'lucide-react';
@@ -17,17 +18,17 @@ const Login = () => {
     setError(null); // Clear any old errors when they try again
 
     try {
-      // 5. Send a POST request to our backend login route!
       const response = await API.post('/auth/login', { email, password });
-
-      // 6. It worked! Save their new secure JWT Token to the browser's localStorage
       localStorage.setItem('userInfo', JSON.stringify(response.data));
-      setUser(response.data); // Added this line
-      // Redirect them to the Home Page 
+      setUser(response.data);
+      
+      // BAM! Add this right before you navigate! Shows a green checkmark!
+      toast.success('Successfully logged in! 🎉');
+      
       navigate('/');
     } catch (err) {
-      // 7. If they type the wrong password, catch the Express error message and show it!
-      setError(err.response?.data?.message || 'Something went wrong connecting to the server.');
+      // If they type a wrong password, show a red X error popup!
+      toast.error(err.response?.data?.message || 'Login failed');
     }
   };
 

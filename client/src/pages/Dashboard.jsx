@@ -40,7 +40,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           
           <Link to="/interview">
-            <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6 hover:shadow-md transition-shadow cursor-pointer group h-full">
+            <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6 cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full">
               <div className="h-12 w-12 bg-blue-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-600 transition-colors">
                 <Code2 className="h-6 w-6 text-blue-600 group-hover:text-white transition-colors" />
               </div>
@@ -48,7 +48,7 @@ const Dashboard = () => {
               <p className="mt-2 text-gray-600">Choose a topic like Arrays or Graphs and test your knowledge against the clock.</p>
             </div>
           </Link>
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow cursor-pointer group">
+          <div className="bg-white rounded-xl shadow-sm border border-blue-100 p-6 cursor-pointer group transition-all duration-300 hover:-translate-y-1 hover:shadow-xl h-full">
             <div className="h-12 w-12 bg-gray-50 rounded-lg flex items-center justify-center mb-4 group-hover:bg-gray-800 transition-colors">
               <History className="h-6 w-6 text-gray-600 group-hover:text-white transition-colors" />
             </div>

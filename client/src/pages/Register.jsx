@@ -1,4 +1,5 @@
 import React, { useState, useContext } from 'react';
+import toast from 'react-hot-toast';
 import { AuthContext } from '../context/AuthContext'; // Added this line
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react'; // Notice we use a different icon here!
@@ -24,11 +25,13 @@ const Register = () => {
       // 2. Automatically log them in by saving the new token
       localStorage.setItem('userInfo', JSON.stringify(response.data));
       setUser(response.data); // Added this line
+
+      toast.success('Successfully logged in! 🎉'); // toast popup use add kiya yahaa bbg
       // 3. Send them to the homepage
       navigate('/');
     } catch (err) {
       // Catch backend errors (like "User already exists")
-      setError(err.response?.data?.message || 'Failed to register.');
+      toast.error(err.response?.data?.message || 'Login failed');
     }
   };
 

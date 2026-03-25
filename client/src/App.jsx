@@ -1,4 +1,5 @@
 import React from 'react';
+import { Toaster } from 'react-hot-toast';
 import Interview from './pages/Interview';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -12,6 +13,8 @@ function App() {
     <BrowserRouter>
       {/* We wrap the whole app in a flex-col so the background color stretches perfectly */}
       <div className="min-h-screen flex flex-col bg-gray-50">
+        {/* 1. Add the Toaster component right at the top - haan exactly yahan nilkul yaha */}
+        <Toaster position="top-center" reverseOrder={false} />
         <Navbar />
         
         <Routes>

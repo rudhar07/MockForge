@@ -66,8 +66,21 @@ const Interview = () => {
     }
   };
 
-
-  if (loading) return <div className="text-center py-20 text-xl font-bold text-gray-500">Loading your interview...</div>;
+    // loading circle add kiya bbg - maza aaya?? 
+    if (loading) {    
+    return (
+      <div className="flex-grow flex flex-col items-center justify-center py-32">
+        {/* This creates the actual spinning circle using Tailwind's border properties! */}
+        <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin shadow-sm"></div>
+        
+        {/* We add animate-pulse to make the text gently fade in and out */}
+        <h2 className="mt-6 text-xl font-bold text-gray-700 animate-pulse">
+          Fetching Interview Questions...
+        </h2>
+        <p className="text-gray-400 mt-2 text-sm">Warming up the database</p>
+      </div>
+    );
+  }
 
   // 3. What to show when the interview finishes
   if (showResult) {
