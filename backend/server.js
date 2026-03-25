@@ -1,5 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import submissionRoutes from './src/routes/submissionRoutes.js';
 import cors from 'cors';
 import connectDB from './src/config/db.js';
 
@@ -19,6 +20,7 @@ app.use(express.json());
 // 2. Main API Routes
 app.use('/api/auth', authRoutes); 
 app.use('/api/questions', questionRoutes);
+app.use('/api/submissions', submissionRoutes);
 
 
 app.get('/', (req, res) => {

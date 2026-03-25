@@ -1,4 +1,5 @@
 import React from 'react';
+import Interview from './pages/Interview';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
@@ -15,6 +16,8 @@ function App() {
         
         <Routes>
           {/* Public Routes */}
+          <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
+
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
