@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { LogOut, Code2 } from 'lucide-react';
+import { LogOut, Code2 , ShieldCheck , Trophy } from 'lucide-react';
 
 const Navbar = () => {
   // We magically grab the user's data and the logout function from our context!
@@ -30,6 +30,19 @@ const Navbar = () => {
           <div className="flex items-center">
             {user ? (
               <div className="flex items-center space-x-4">
+                  {/* NEW: Admin Button! Only renders if their role is exactly "admin" */}
+                  {user.role === 'admin' && (
+                    <Link to="/admin" className="text-gray-600 hover:text-blue-600 font-bold flex items-center transition-colors mr-2">
+                      <ShieldCheck className="h-5 w-5 mr-1" />
+                      Admin Panel
+                    </Link>
+                  )}
+                  <Link to="/leaderboard" className="text-gray-600 hover:text-yellow-600 font-bold flex items-center transition-colors mr-6">
+                    <Trophy className="h-5 w-5 mr-1" />
+                    Hall of Fame
+                  </Link>
+
+
                 <span className="text-gray-700 font-medium">Hello, {user.name}!</span>
                 <button
                   onClick={handleLogout}

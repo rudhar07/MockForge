@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: ['user', 'admin'], // Only allows these two values
-      default: 'user',
+      default: 'admin',
     },
   },
   {

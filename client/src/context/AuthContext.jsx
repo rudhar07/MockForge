@@ -1,20 +1,16 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useState } from 'react';
 
 // 1. We create the empty 'cloud' box
 export const AuthContext = createContext();
 
-// 2. We create the Provider (the machine that controls the box)
 export const AuthProvider = ({ children }) => {
-  // `user` holds the token and email. If it's null, they are logged out.
-  const [user, setUser] = useState(null);
-
-  // When the website first loads, instantly check if they have a saved Token in LocalStorage!
-  useEffect(() => {
+  
+  // FIX: We pass a function into useState. This forces React to read LocalStorage 
+  // INSTANTLY before the website even finishes rendering for the first time!
+  const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('userInfo');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   // A tiny helper function so any component can instantly log the user out
   const logout = () => {
@@ -22,7 +18,6 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
-  // We expose `user`, `setUser`, and `logout` to the whole app!
   return (
     <AuthContext.Provider value={{ user, setUser, logout }}>
       {children}

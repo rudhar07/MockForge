@@ -1,5 +1,7 @@
 import React from 'react';
 import { Toaster } from 'react-hot-toast';
+import Leaderboard from './pages/Leaderboard';
+import AdminDashboard from './pages/AdminDashboard';
 import Interview from './pages/Interview';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
@@ -20,7 +22,8 @@ function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
-
+          <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 

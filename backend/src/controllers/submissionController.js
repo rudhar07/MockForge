@@ -31,3 +31,20 @@ export const getMySubmissions = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// naya query add kiya leaderboard bnane se pehle
+
+// @desc    Get top 10 highest scores across all users
+// @route   GET /api/submissions/leaderboard
+export const getLeaderboard = async (req, res) => {
+  try {
+    const topSubmissions = await Submission.find({})
+      .sort({ score: -1, createdAt: 1 }) // Highest score first (-1)
+      .limit(10) // Only get the top 10!
+      .populate('user', 'name'); // Magically grab the 'name' of the user who scored it
+      
+    res.json(topSubmissions);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
