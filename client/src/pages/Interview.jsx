@@ -18,7 +18,6 @@ const Interview = () => {
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState(600); // NEW: 10 minutes in seconds
 
-  // We explicitly added `topic` to the dependency array below. 
   // It physically legally cannot run until `topic` is chosen!
   useEffect(() => {
     const fetchQuestions = async () => {
