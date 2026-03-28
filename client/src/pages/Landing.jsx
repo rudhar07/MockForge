@@ -215,7 +215,7 @@ const Landing = () => {
       </section>
 
 
-      {/* ===== FOOTER ==kuch aur added bbg=== */} 
+      {/* ===== FOOTER == kuch aur added bbg === */} 
       <footer className="bg-slate-950 text-slate-500 py-8 px-4">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           
@@ -227,9 +227,17 @@ const Landing = () => {
 
           {/* Copyright */}
           <p className="text-sm">
-            © {new Date().getFullYear()} MockForge. Made with ❤️ by Rudhar Bajaj.
+            © {new Date().getFullYear()} MockForge. Made with ❤️ by{" "}
+            <a
+              href="https://www.linkedin.com/in/rudhar-bajaj/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-white hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.8)] 
+               transition-all duration-300 font-medium"            
+            >
+              Rudhar Bajaj
+            </a>.
           </p>
-
 
           {/* Links */}
           <div className="flex gap-6 text-sm">
