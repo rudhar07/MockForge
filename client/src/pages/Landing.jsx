@@ -194,6 +194,55 @@ const Landing = () => {
       </section>
 
 
+      {/* ===== CTA BANNER === how it works wala section bbg== */}
+      <section className="bg-slate-900 py-20 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+            Ready to start forging your skills?
+          </h2>
+          <p className="text-slate-400 mb-8">
+            Join developers who are taking their interview prep seriously.
+            Your next offer starts here.
+          </p>
+          <Link
+            to="/register"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-10 py-4 rounded-lg text-lg transition-colors duration-200"
+          >
+            Get Started — It's Free
+            <ArrowRight className="h-5 w-5" />
+          </Link>
+        </div>
+      </section>
+
+
+      {/* ===== FOOTER ==kuch aur added bbg=== */} 
+      <footer className="bg-slate-950 text-slate-500 py-8 px-4">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+          
+          {/* Logo */}
+          <div className="flex items-center gap-2 text-white font-bold text-lg">
+            <Code2 className="h-5 w-5 text-blue-400" />
+            MockForge
+          </div>
+
+          {/* Copyright */}
+          <p className="text-sm">
+            © {new Date().getFullYear()} MockForge. Made with ❤️ by Rudhar Bajaj.
+          </p>
+
+
+          {/* Links */}
+          <div className="flex gap-6 text-sm">
+            <Link to="/login" className="hover:text-white transition-colors">Login</Link>
+            <Link to="/register" className="hover:text-white transition-colors">Sign Up</Link>
+          </div>
+
+        </div>
+      </footer>
+
+
+
+
 
     </div>
   );
