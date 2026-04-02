@@ -20,7 +20,7 @@ export const saveSubmission = async (req, res) => {
   }
 };
 
-// @desc    Get the current logged-in user's past history
+// @desc    get the current logged-in user's past history
 // @route   GET /api/submissions/history
 export const getMySubmissions = async (req, res) => {
   try {
@@ -34,8 +34,8 @@ export const getMySubmissions = async (req, res) => {
 
 // naya query add kiya leaderboard bnane se pehle
 
-// @desc    Get top 10 highest scores across all users
-// @route   GET /api/submissions/leaderboard
+// @desc    Get top 10 highest scores across all users bbg
+// @route   GET /api/submissions/leaderboard bbg
 export const getLeaderboard = async (req, res) => {
   try {
     const topSubmissions = await Submission.find({})

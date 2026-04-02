@@ -25,9 +25,9 @@ const PublicHome = () => {
 function App() {
   return (
     <BrowserRouter>
-      {/* We wrap the whole color stretches perfectly */}
+      {/* We wrap the whole app in a flex-col so the background color stretches perfectly */}
       <div className="min-h-screen flex flex-col bg-gray-50">
-        {/* 1. Add the Toaster compone - haan exactly yahan nilkul yaha */}
+        {/* 1. Add the Toaster component right at the top - haan exactly yahan nilkul yaha */}
         <Toaster position="top-center" reverseOrder={false} />
         <Navbar />
         
@@ -39,7 +39,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes (You can only see these if our bouncer lets you in!) */}
+          {/* Protected Routes (u can only see these if our bouncer lets you in!) */}
 
           <Route path="/" element={<PublicHome />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
