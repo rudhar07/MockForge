@@ -26,7 +26,7 @@ function App() {
   return (
     <BrowserRouter>
       {/* We wrap the whole app in a flex-col so the background color stretches perfectly */}
-      <div className="min-h-screen flex flex-col bg-gray-50">
+      <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         {/* 1. Add the Toaster component right at the top - haan exactly yahan nilkul yaha */}
         <Toaster position="top-center" reverseOrder={false} />
         <Navbar />

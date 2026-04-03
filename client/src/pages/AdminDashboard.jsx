@@ -48,28 +48,28 @@ const AdminDashboard = () => {
 
   return (
     <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+      <div className="max-w-3xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 transition-colors duration-300">
         
-        <div className="flex items-center mb-8 border-b pb-4">
-          <ShieldCheck className="h-8 w-8 text-blue-600 mr-3" />
-          <h1 className="text-2xl font-bold text-gray-900">Admin Control Panel</h1>
+        <div className="flex items-center mb-8 border-b dark:border-gray-700 pb-4">
+          <ShieldCheck className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Admin Control Panel</h1>
         </div>
 
         <form onSubmit={submitHandler} className="space-y-6">
           <div>
-            <label className="text-sm font-bold text-gray-700">Question Title (The actual question)</label>
-            <input required type="text" className="mt-1 w-full p-2 border rounded-md" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Question Title (The actual question)</label>
+            <input required type="text" className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
           </div>
 
           <div>
-            <label className="text-sm font-bold text-gray-700">Description / Hint</label>
-            <textarea required className="mt-1 w-full p-2 border rounded-md" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Description / Hint</label>
+            <textarea required className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-bold text-gray-700">Topic</label>
-              <select className="mt-1 w-full p-2 border rounded-md" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})}>
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Topic</label>
+              <select className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})}>
                 <option value="arrays">Arrays</option>
                 <option value="strings">Strings</option>
                 <option value="graphs">Graphs</option>
@@ -78,28 +78,28 @@ const AdminDashboard = () => {
               </select>
             </div>
             <div>
-              <label className="text-sm font-bold text-gray-700">Difficulty</label>
-              <select className="mt-1 w-full p-2 border rounded-md" value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})}>
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Difficulty</label>
+              <select className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.difficulty} onChange={(e) => setFormData({...formData, difficulty: e.target.value})}>
                 <option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-bold text-gray-700">The 4 Multiple Choice Options</label>
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">The 4 Multiple Choice Options</label>
             {options.map((opt, idx) => (
-              <input key={idx} required type="text" placeholder={`Option ${idx + 1}`} className="w-full p-2 border rounded-md" value={opt} onChange={(e) => handleOptionChange(idx, e.target.value)} />
+              <input key={idx} required type="text" placeholder={`Option ${idx + 1}`} className="w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={opt} onChange={(e) => handleOptionChange(idx, e.target.value)} />
             ))}
           </div>
 
           <div>
-            <label className="text-sm font-bold text-blue-600">Correct Answer (Must match an option exactly)</label>
-            <input required type="text" className="mt-1 w-full p-2 border border-blue-300 rounded-md" value={formData.correctAnswer} onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})} />
+            <label className="text-sm font-bold text-blue-600 dark:text-blue-400">Correct Answer (Must match an option exactly)</label>
+            <input required type="text" className="mt-1 w-full p-2 border border-blue-300 dark:border-blue-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.correctAnswer} onChange={(e) => setFormData({...formData, correctAnswer: e.target.value})} />
           </div>
 
           <div>
-            <label className="text-sm font-bold text-gray-700">Explanation (Shown at the end of the test)</label>
-            <textarea required className="mt-1 w-full p-2 border rounded-md" value={formData.explanation} onChange={(e) => setFormData({...formData, explanation: e.target.value})} />
+            <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Explanation (Shown at the end of the test)</label>
+            <textarea required className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.explanation} onChange={(e) => setFormData({...formData, explanation: e.target.value})} />
           </div>
 
           <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition">

@@ -7,7 +7,7 @@ const Landing = () => {
     <div className="flex flex-col min-h-screen">
 
       {/* ===== HERO SECTION ===== */}
-      <section className="bg-slate-900 text-white flex-1 flex items-center justify-center py-24 px-4">
+      <section className="bg-slate-900 dark:bg-gray-950 text-white flex-1 flex items-center justify-center py-24 px-4 transition-colors duration-300">
         <div className="max-w-3xl mx-auto text-center">
 
           {/* Badge */}
@@ -71,15 +71,15 @@ const Landing = () => {
 
       {/* // naya section add krenge bbg - 3 cards - idea of mockforge */}
       {/* ===== FEATURES SECTION ===== */}
-      <section className="bg-white py-24 px-4">
+      <section className="bg-white dark:bg-gray-900 py-24 px-4 transition-colors duration-300">
         <div className="max-w-5xl mx-auto">
 
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
               Everything you need to prepare
             </h2>
-            <p className="text-slate-500 max-w-xl mx-auto">
+            <p className="text-slate-500 dark:text-gray-400 max-w-xl mx-auto">
               MockForge gives you the tools, the pressure, and the feedback to
               walk into any interview with confidence.
             </p>
@@ -89,36 +89,36 @@ const Landing = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
 
             {/* Card 1 */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+            <div className="bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <Zap className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Timed Sessions</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Timed Sessions</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 Every interview is timed to simulate real pressure. No pausing,
                 no overthinking — just you and the clock.
               </p>
             </div>
 
             {/* Card 2 */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+            <div className="bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <BookOpen className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Curated Question Bank</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Curated Question Bank</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 Arrays, DP, Graphs, OOP — handpicked questions across topics and
                 difficulty levels, built by engineers.
               </p>
             </div>
 
             {/* Card 3 */}
-            <div className="bg-slate-50 border border-slate-100 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
-              <div className="bg-blue-100 text-blue-600 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
+            <div className="bg-slate-50 dark:bg-gray-800 border border-slate-100 dark:border-gray-700 rounded-2xl p-8 hover:shadow-lg transition-shadow duration-300">
+              <div className="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 w-12 h-12 rounded-xl flex items-center justify-center mb-5">
                 <Trophy className="h-6 w-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Live Leaderboard</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Live Leaderboard</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 See how you stack up against other developers in real time. Compete,
                 improve, and climb the ranks.
               </p>
@@ -131,15 +131,15 @@ const Landing = () => {
 
       {/* kuch aur bhi add krenge bbg - new section - smthing is cooking?! */}
       {/* ===== HOW IT WORKS SECTION ===== */}
-      <section className="bg-slate-50 py-24 px-4">
+      <section className="bg-slate-50 dark:bg-gray-800 py-24 px-4 transition-colors duration-300">
         <div className="max-w-5xl mx-auto">
 
           {/* Section Header */}
           <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-4">
+            <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
               How It Works
             </h2>
-            <p className="text-slate-500 max-w-xl mx-auto">
+            <p className="text-slate-500 dark:text-gray-400 max-w-xl mx-auto">
               Go from zero to interview-ready in three simple steps.
             </p>
           </div>
@@ -152,38 +152,38 @@ const Landing = () => {
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 1
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Create an Account</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Create an Account</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 Sign up in seconds. No credit card, no fluff. Just create your
                 profile and you're ready.
               </p>
             </div>
 
             {/* Connector line (hidden on mobile) */}
-            <div className="hidden sm:block absolute top-7 left-1/3 w-1/3 h-0.5 bg-blue-200" />
+            <div className="hidden sm:block absolute top-7 left-1/3 w-1/3 h-0.5 bg-blue-200 dark:bg-blue-800" />
 
             {/* Step 2 */}
             <div className="flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 2
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Pick a Topic & Start</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Pick a Topic & Start</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 Choose your topic — Arrays, DP, Graphs, or OOP. The timer starts
                 immediately. Treat it like the real thing.
               </p>
             </div>
 
             {/* Connector line (hidden on mobile) */}
-            <div className="hidden sm:block absolute top-7 right-1/3 w-1/3 h-0.5 bg-blue-200" />
+            <div className="hidden sm:block absolute top-7 right-1/3 w-1/3 h-0.5 bg-blue-200 dark:bg-blue-800" />
 
             {/* Step 3 */}
             <div className="flex flex-col items-center text-center">
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 3
               </div>
-              <h3 className="text-xl font-bold text-slate-900 mb-3">Track Your Progress</h3>
-              <p className="text-slate-500">
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Track Your Progress</h3>
+              <p className="text-slate-500 dark:text-gray-400">
                 See your score, compare it on the leaderboard, and come back
                 tomorrow to beat it. Consistency wins.
               </p>
@@ -195,7 +195,7 @@ const Landing = () => {
 
 
       {/* ===== CTA BANNER === how it works wala section bbg== */}
-      <section className="bg-slate-900 py-20 px-4">
+      <section className="bg-slate-900 dark:bg-gray-950 py-20 px-4 transition-colors duration-300">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
             Ready to start forging your skills?
@@ -247,7 +247,6 @@ const Landing = () => {
 
         </div>
       </footer>
-
 
 
 
