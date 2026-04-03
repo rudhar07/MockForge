@@ -148,7 +148,7 @@ const Landing = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 relative">
 
             {/* Step 1 */}
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center relative z-10">
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 1
               </div>
@@ -159,11 +159,8 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Connector line (hidden on mobile) */}
-            <div className="hidden sm:block absolute top-7 left-1/3 w-1/3 h-0.5 bg-blue-200 dark:bg-blue-800" />
-
             {/* Step 2 */}
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center relative z-10">
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 2
               </div>
@@ -174,11 +171,8 @@ const Landing = () => {
               </p>
             </div>
 
-            {/* Connector line (hidden on mobile) */}
-            <div className="hidden sm:block absolute top-7 right-1/3 w-1/3 h-0.5 bg-blue-200 dark:bg-blue-800" />
-
             {/* Step 3 */}
-            <div className="flex flex-col items-center text-center">
+            <div className="flex flex-col items-center text-center relative z-10">
               <div className="w-14 h-14 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mb-5 shadow-lg">
                 3
               </div>
