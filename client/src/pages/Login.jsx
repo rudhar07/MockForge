@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import toast from 'react-hot-toast';
-import { AuthContext } from '../context/AuthContext'; // Added this line
+import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom'; // 1. We imported useNavigate
 import { LogIn } from 'lucide-react';
 import API from '../api/axios'; // 2. We imported our shiny new API shortcut!

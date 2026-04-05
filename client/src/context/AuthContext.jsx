@@ -1,7 +1,5 @@
-import React, { createContext, useState } from 'react';
-
-// 1. We create the empty 'cloud' box
-export const AuthContext = createContext();
+import React, { useState } from 'react';
+import { AuthContext } from './AuthContext';
 
 export const AuthProvider = ({ children }) => {
   

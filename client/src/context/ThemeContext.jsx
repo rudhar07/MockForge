@@ -1,7 +1,5 @@
-import React, { createContext, useState, useEffect } from 'react';
-
-// 1. Create the context
-export const ThemeContext = createContext();
+import React, { useState, useEffect } from 'react';
+import { ThemeContext } from './ThemeContext';
 
 export const ThemeProvider = ({ children }) => {
   // Read saved theme from localStorage, default to 'light'

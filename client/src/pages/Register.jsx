@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import toast from 'react-hot-toast';
-import { AuthContext } from '../context/AuthContext'; // Added this line
+import { AuthContext } from '../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react'; // Notice we use a different icon here!
 import API from '../api/axios';
