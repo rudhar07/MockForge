@@ -8,17 +8,17 @@ import { Navigate } from 'react-router-dom';
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
 
-  // SECURITY Bouncer: If they aren't an admin, kick them out!
-  if (!user || user.role !== 'admin') {
-    return <Navigate to="/" replace />;
-  }
-
   const [formData, setFormData] = useState({
     title: '', description: '', topic: 'arrays', difficulty: 'easy',
     correctAnswer: '', explanation: '', marks: 10
   });
 
   const [options, setOptions] = useState(['', '', '', '']);
+
+  // SECURITY Bouncer: If they aren't an admin, kick them out!
+  if (!user || user.role !== 'admin') {
+    return <Navigate to="/" replace />;
+  }
 
   const handleOptionChange = (idx, value) => {
     const newOptions = [...options];
@@ -71,7 +71,6 @@ const AdminDashboard = () => {
               <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Topic</label>
               <select className="mt-1 w-full p-2 border dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.topic} onChange={(e) => setFormData({...formData, topic: e.target.value})}>
                 <option value="arrays">Arrays</option>
-                <option value="strings">Strings</option>
                 <option value="graphs">Graphs</option>
                 <option value="dp">Dynamic Programming</option>
                 <option value="oop">Object Oriented Programming</option>

@@ -1,13 +1,24 @@
 import Question from '../models/Questions.js';
 
+const sanitizeQuestion = (question) => ({
+  _id: question._id,
+  title: question.title,
+  description: question.description,
+  type: question.type,
+  topic: question.topic,
+  difficulty: question.difficulty,
+  options: question.options,
+  marks: question.marks,
+});
+
 // @desc    Get all questions
 // @route   GET /api/questions
 // @access  Private (Logged-in users only)
 export const getQuestions = async (req, res) => {
   try {
-    // `.find({})` gets every single question in the database
-    const questions = await Question.find({});
-    res.json(questions);
+    // Never expose answer keys to interview candidates.
+    const questions = await Question.find({}).lean();
+    res.json(questions.map(sanitizeQuestion));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -18,9 +29,8 @@ export const getQuestions = async (req, res) => {
 // @access  Private
 export const getQuestionsByTopic = async (req, res) => {
   try {
-    // We grab the topic from the URL parameter (req.params.topic)
-    const questions = await Question.find({ topic: req.params.topic });
-    res.json(questions);
+    const questions = await Question.find({ topic: req.params.topic }).lean();
+    res.json(questions.map(sanitizeQuestion));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
