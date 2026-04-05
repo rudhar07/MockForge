@@ -2,7 +2,9 @@ import express from 'express';
 import { 
   getQuestions, 
   getQuestionsByTopic, 
-  createQuestion 
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
 } from '../controllers/questionController.js';
 import { protect, admin } from '../middleware/authMiddleware.js';
 
@@ -16,5 +18,9 @@ router.route('/')
 
 // Get questions by a specific topic
 router.route('/topic/:topic').get(protect, getQuestionsByTopic);
+
+router.route('/:id')
+  .put(protect, admin, updateQuestion)
+  .delete(protect, admin, deleteQuestion);
 
 export default router;

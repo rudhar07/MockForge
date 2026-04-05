@@ -72,3 +72,61 @@ export const createQuestion = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Update a question
+// @route   PUT /api/questions/:id
+// @access  Private/Admin
+export const updateQuestion = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      type,
+      topic,
+      difficulty,
+      options,
+      correctAnswer,
+      explanation,
+      marks,
+    } = req.body;
+
+    const question = await Question.findById(req.params.id);
+
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    question.title = title;
+    question.description = description;
+    question.type = type;
+    question.topic = topic;
+    question.difficulty = difficulty;
+    question.options = options;
+    question.correctAnswer = correctAnswer;
+    question.explanation = explanation;
+    question.marks = marks;
+
+    const updatedQuestion = await question.save();
+    res.json(updatedQuestion);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Delete a question
+// @route   DELETE /api/questions/:id
+// @access  Private/Admin
+export const deleteQuestion = async (req, res) => {
+  try {
+    const question = await Question.findById(req.params.id);
+
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    await question.deleteOne();
+    res.json({ message: 'Question deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
