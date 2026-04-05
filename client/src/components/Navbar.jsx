@@ -2,10 +2,9 @@ import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { ThemeContext } from '../context/ThemeContext';
-import { LogOut, Code2 , ShieldCheck , Trophy, Sun, Moon } from 'lucide-react';
+import { LogOut, Code2, ShieldCheck, Trophy, Sun, Moon } from 'lucide-react';
 
 const Navbar = () => {
-  // We magically grab the user's data and the logout function from our context!
   const { user, logout } = useContext(AuthContext);
   const { theme, toggleTheme } = useContext(ThemeContext);
   const navigate = useNavigate();
@@ -16,62 +15,87 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-100 dark:border-gray-700 transition-colors duration-300">
+    <nav className="sticky top-0 z-40 border-b border-white/50 dark:border-slate-800 bg-white/80 dark:bg-slate-900/75 backdrop-blur-xl shadow-sm transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-
-          {/* Logo */}
-          <div className="flex items-center">
-            <Code2 className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-            <Link to="/" className="ml-2 text-xl font-bold text-gray-900 dark:text-white">
-              MockForge
+        <div className="flex justify-between items-center min-h-[72px] gap-4">
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="h-11 w-11 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center transition-colors group-hover:bg-blue-600">
+                <Code2 className="h-6 w-6 text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors" />
+              </div>
+              <div>
+                <span className="block text-2xl font-black tracking-tight text-gray-900 dark:text-white">
+                  MockForge
+                </span>
+                {/* <span className="block text-xs font-medium text-gray-500 dark:text-gray-400">
+                  Interview Simulator
+                </span> */}
+              </div>
             </Link>
           </div>
 
-          {/* Right Side (Dynamic depending on if `user` exists!) */}
-          <div className="flex items-center">
-
-            {/* 🌙 Dark Mode Toggle Button */}
+          <div className="flex items-center gap-3">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-yellow-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all duration-300 mr-4"
+              className="inline-flex items-center justify-center h-11 w-11 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-slate-800 text-gray-600 dark:text-yellow-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-all duration-300"
               title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
             >
               {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
             </button>
 
             {user ? (
-              <div className="flex items-center space-x-4">
-                  {/* NEW: Admin Button! Only renders if their role is exactly "admin" */}
-                  {user.role === 'admin' && (
-                    <Link to="/admin" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-bold flex items-center transition-colors mr-2">
-                      <ShieldCheck className="h-5 w-5 mr-1" />
-                      Admin Panel
-                    </Link>
-                  )}
-                  <Link to="/leaderboard" className="text-gray-600 dark:text-gray-300 hover:text-yellow-600 dark:hover:text-yellow-400 font-bold flex items-center transition-colors mr-6">
-                    <Trophy className="h-5 w-5 mr-1" />
-                    Hall of Fame
+              <div className="flex items-center gap-2 sm:gap-3">
+                {user.role === 'admin' && (
+                  <Link
+                    to="/admin"
+                    className="hidden md:inline-flex items-center px-4 py-2.5 rounded-2xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                  >
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    Admin Panel
                   </Link>
+                )}
+                <Link
+                  to="/leaderboard"
+                  className="hidden md:inline-flex items-center px-4 py-2.5 rounded-2xl border border-amber-100 dark:border-amber-900/30 bg-amber-50/70 dark:bg-amber-900/10 text-amber-700 dark:text-amber-300 font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/20 transition-colors"
+                >
+                  <Trophy className="h-4 w-4 mr-2" />
+                  Hall of Fame
+                </Link>
 
+                <div className="hidden sm:flex items-center rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-slate-800 px-4 py-2.5">
+                  <div className="min-w-0">
+                    <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">Signed in</p>
+                    <p className="text-sm font-semibold text-gray-900 dark:text-white truncate max-w-36">
+                      {user.name}
+                    </p>
+                  </div>
+                </div>
 
-                <span className="text-gray-700 dark:text-gray-300 font-medium">Hello, {user.name}!</span>
                 <button
                   onClick={handleLogout}
-                  className="flex items-center text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  className="inline-flex items-center px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold hover:bg-red-600 dark:hover:bg-red-500 dark:hover:text-white transition-colors"
                 >
-                  <LogOut className="h-5 w-5 mr-1" />
+                  <LogOut className="h-4 w-4 mr-2" />
                   Logout
                 </button>
               </div>
             ) : (
-              <div className="space-x-4 flex">
-                <Link to="/" className="text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium px-3 py-2">Login</Link>
-                <Link to="/register" className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md font-medium transition-colors">Sign Up</Link>
+              <div className="flex items-center gap-3">
+                <Link
+                  to="/login"
+                  className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-semibold px-4 py-2.5"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="inline-flex items-center rounded-2xl bg-slate-900 dark:bg-blue-600 text-white px-5 py-2.5 font-semibold hover:bg-blue-600 dark:hover:bg-blue-500 transition-colors shadow-lg shadow-slate-900/10 dark:shadow-blue-950/30"
+                >
+                  Sign Up
+                </Link>
               </div>
             )}
           </div>
-
         </div>
       </div>
     </nav>
