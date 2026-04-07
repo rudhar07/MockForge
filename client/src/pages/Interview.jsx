@@ -255,7 +255,7 @@ const Interview = () => {
             <button onClick={() => setTopic(null)} className="px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-semibold">
               Pick Another Topic
             </button>
-            <button onClick={retryCurrentTopic} className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold">
+             <button onClick={retryCurrentTopic} className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold">
               Retry
             </button>
           </div>

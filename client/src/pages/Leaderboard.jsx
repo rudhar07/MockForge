@@ -71,6 +71,9 @@ const Leaderboard = () => {
                 <div className="text-2xl font-black text-gray-900 dark:text-white flex items-center justify-end">
                   {sub.score} <span className="text-sm text-gray-500 dark:text-gray-400 font-normal ml-1">/ {sub.totalPossible} pts</span>
                 </div>
+                <div className="mt-1 text-sm font-semibold text-blue-600 dark:text-blue-400">
+                  {sub.percentage ?? 0}% accuracy
+                </div>
                 <div className="text-xs text-gray-400 dark:text-gray-500 flex items-center justify-end mt-1">
                   <Star className="h-3 w-3 mr-1 text-yellow-400" /> Rank #{index + 1} Overall
                 </div>

@@ -76,11 +76,52 @@ export const getMySubmissions = async (req, res) => {
 // @route   GET /api/submissions/leaderboard bbg
 export const getLeaderboard = async (req, res) => {
   try {
-    const topSubmissions = await Submission.find({})
-      .sort({ score: -1, createdAt: 1 }) // Highest score first (-1)
-      .limit(10) // Only get the top 10!
-      .populate('user', 'name'); // Magically grab the 'name' of the user who scored it
-      
+    const topSubmissions = await Submission.aggregate([
+      {
+        $addFields: {
+          percentage: {
+            $cond: [
+              { $gt: ['$totalPossible', 0] },
+              { $multiply: [{ $divide: ['$score', '$totalPossible'] }, 100] },
+              0,
+            ],
+          },
+        },
+      },
+      {
+        $sort: {
+          percentage: -1,
+          score: -1,
+          createdAt: 1,
+        },
+      },
+      { $limit: 10 },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user',
+        },
+      },
+      {
+        $unwind: {
+          path: '$user',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          topic: 1,
+          score: 1,
+          totalPossible: 1,
+          createdAt: 1,
+          percentage: { $round: ['$percentage', 0] },
+          'user.name': 1,
+        },
+      },
+    ]);
+
     res.json(topSubmissions);
   } catch (error) {
     res.status(500).json({ message: error.message });
