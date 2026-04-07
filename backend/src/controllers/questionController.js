@@ -36,6 +36,23 @@ export const getQuestionsByTopic = async (req, res) => {
   }
 };
 
+// @desc    Get a single question with full admin-edit details
+// @route   GET /api/questions/:id
+// @access  Private/Admin
+export const getQuestionById = async (req, res) => {
+  try {
+    const question = await Question.findById(req.params.id).lean();
+
+    if (!question) {
+      return res.status(404).json({ message: 'Question not found' });
+    }
+
+    res.json(question);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // @desc    Create a new question
 // @route   POST /api/questions
 // @access  Private/Admin (Only Admins can do this)

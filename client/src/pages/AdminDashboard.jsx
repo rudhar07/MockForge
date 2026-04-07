@@ -22,6 +22,7 @@ const AdminDashboard = () => {
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingEdit, setIsLoadingEdit] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [filters, setFilters] = useState({ search: '', topic: 'all', difficulty: 'all' });
   const token = user?.token;
@@ -61,19 +62,30 @@ const AdminDashboard = () => {
     return <Navigate to="/" replace />;
   }
 
-  const startEditing = (question) => {
-    setEditingId(question._id);
-    setFormData({
-      title: question.title,
-      description: question.description,
-      topic: question.topic,
-      difficulty: question.difficulty,
-      correctAnswer: question.correctAnswer,
-      explanation: question.explanation,
-      marks: question.marks,
-    });
-    setOptions(question.options);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const startEditing = async (questionId) => {
+    try {
+      setIsLoadingEdit(true);
+      const { data } = await API.get(`/questions/${questionId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      setEditingId(data._id);
+      setFormData({
+        title: data.title,
+        description: data.description,
+        topic: data.topic,
+        difficulty: data.difficulty,
+        correctAnswer: data.correctAnswer,
+        explanation: data.explanation,
+        marks: data.marks,
+      });
+      setOptions(data.options);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to load question details');
+    } finally {
+      setIsLoadingEdit(false);
+    }
   };
 
   const handleDelete = async (questionId) => {
@@ -236,8 +248,8 @@ const AdminDashboard = () => {
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3">
-                <button type="submit" disabled={isSaving} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-60">
-                  {isSaving ? 'Saving...' : editingId ? 'Update Question' : 'Deploy Question'}
+                <button type="submit" disabled={isSaving || isLoadingEdit} className="flex-1 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition disabled:opacity-60">
+                  {isSaving ? 'Saving...' : isLoadingEdit ? 'Loading...' : editingId ? 'Update Question' : 'Deploy Question'}
                 </button>
                 {editingId && (
                   <button type="button" onClick={resetForm} className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold">
@@ -328,11 +340,12 @@ const AdminDashboard = () => {
 
                       <div className="flex flex-row lg:flex-col gap-3">
                         <button
-                          onClick={() => startEditing(question)}
+                          onClick={() => startEditing(question._id)}
+                          disabled={isLoadingEdit}
                           className="inline-flex items-center justify-center px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold"
                         >
                           <PencilLine className="h-4 w-4 mr-2" />
-                          Edit
+                          {isLoadingEdit && editingId !== question._id ? 'Loading...' : 'Edit'}
                         </button>
                         <button
                           onClick={() => handleDelete(question._id)}

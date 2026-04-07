@@ -2,6 +2,7 @@ import express from 'express';
 import { 
   getQuestions, 
   getQuestionsByTopic, 
+  getQuestionById,
   createQuestion,
   updateQuestion,
   deleteQuestion,
@@ -20,6 +21,7 @@ router.route('/')
 router.route('/topic/:topic').get(protect, getQuestionsByTopic);
 
 router.route('/:id')
+  .get(protect, admin, getQuestionById)
   .put(protect, admin, updateQuestion)
   .delete(protect, admin, deleteQuestion);
 
