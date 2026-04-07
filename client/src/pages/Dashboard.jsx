@@ -312,7 +312,7 @@ const Dashboard = () => {
                       <div>
                         <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">{topic.topic}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {topic.attempts} attempt{topic.attempts === 1 ? '' : 's'} • best {topic.bestPercentage}%
+                          {topic.attempts} attempt{topic.attempts === 1 ? '' : 's'} - best {topic.bestPercentage}%
                         </p>
                       </div>
                       <span className="text-xl font-black text-gray-900 dark:text-white">{topic.averagePercentage}%</span>

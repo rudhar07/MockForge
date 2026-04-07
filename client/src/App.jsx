@@ -14,7 +14,7 @@ import { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from './context/AuthContext';
 
-// Smart route: logged in? → Dashboard. Logged out? → Landing page
+// Smart route: logged in? -> Dashboard. Logged out? -> Landing page
 const PublicHome = () => {
   const { user } = useContext(AuthContext);
   return user ? <Navigate to="/dashboard" /> : <Landing />;

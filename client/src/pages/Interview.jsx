@@ -165,6 +165,34 @@ const Interview = () => {
     setFetchError('');
     setSubmitError('');
   };
+
+  const retryCurrentTopic = async () => {
+    if (!topic) {
+      return;
+    }
+
+    setLoading(true);
+    setFetchError('');
+    setSubmitError('');
+    setQuestions([]);
+    setCurrentIndex(0);
+    setScore(0);
+    setShowResult(false);
+    setReviewMode(false);
+    setTimeLeft(600);
+    setAnswers({});
+    answersRef.current = {};
+
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await API.get(`/questions/topic/${topic}`, config);
+      setQuestions(data);
+    } catch (error) {
+      setFetchError(error.response?.data?.message || 'Unable to load this interview right now.');
+    } finally {
+      setLoading(false);
+    }
+  };
   if (!topic) {
     return (
       <div className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-300">
@@ -227,7 +255,7 @@ const Interview = () => {
             <button onClick={() => setTopic(null)} className="px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 dark:text-slate-900 text-white font-semibold">
               Pick Another Topic
             </button>
-            <button onClick={() => setTopic(null)} className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold">
+            <button onClick={retryCurrentTopic} className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold">
               Retry
             </button>
           </div>
@@ -380,7 +408,7 @@ const Interview = () => {
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Mock Interview</p>
               <h1 className="text-3xl font-black text-gray-900 dark:text-white capitalize mt-2">{topic} Round</h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
-                Stay calm, answer deliberately, and submit when you’re satisfied.
+                Stay calm, answer deliberately, and submit when you're satisfied.
               </p>
             </div>
 
