@@ -128,23 +128,27 @@ const Interview = () => {
     }
   }, [topic, loading, showResult, reviewMode, questions.length, submitting]);
 
-  const handleSelectAnswer = (option) => {
+  const handleSelectAnswer = useCallback((option) => {
     if (!currentQ) return;
 
     setAnswers((prev) => ({
       ...prev,
       [currentQ._id]: option,
     }));
-  };
+  }, [currentQ]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (currentIndex + 1 < questions.length) {
       setCurrentIndex((prev) => prev + 1);
       return;
     }
 
     setReviewMode(true);
-  };
+  }, [currentIndex, questions.length]);
+
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex((prev) => Math.max(prev - 1, 0));
+  }, []);
 
   const handleBackToQuestions = (index = 0) => {
     setReviewMode(false);
@@ -193,6 +197,49 @@ const Interview = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!topic || loading || showResult || reviewMode || submitting || !currentQ) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event) => {
+      const target = event.target;
+      const tagName = target?.tagName?.toLowerCase();
+      const isTypingField =
+        tagName === 'input' || tagName === 'textarea' || target?.isContentEditable;
+
+      if (isTypingField) {
+        return;
+      }
+
+      const optionIndex = Number(event.key) - 1;
+      if (optionIndex >= 0 && optionIndex < currentQ.options.length) {
+        event.preventDefault();
+        handleSelectAnswer(currentQ.options[optionIndex]);
+        return;
+      }
+
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        handlePrevious();
+        return;
+      }
+
+      if (event.key === 'ArrowRight' || event.key === 'Enter') {
+        if (!answers[currentQ._id]) {
+          return;
+        }
+
+        event.preventDefault();
+        handleNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [answers, currentQ, handleNext, handlePrevious, handleSelectAnswer, loading, reviewMode, showResult, submitting, topic]);
+
   if (!topic) {
     return (
       <div className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-300">
@@ -479,7 +526,7 @@ const Interview = () => {
 
           <div className="mt-8 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
             <button
-              onClick={() => setCurrentIndex((prev) => Math.max(prev - 1, 0))}
+              onClick={handlePrevious}
               disabled={currentIndex === 0}
               className="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -488,7 +535,9 @@ const Interview = () => {
             </button>
 
             <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              {answers[currentQ._id] ? 'Answer selected and ready.' : 'Select an option to continue with confidence.'}
+              {answers[currentQ._id]
+                ? 'Answer selected and ready. Use Enter or Right Arrow to continue.'
+                : 'Press 1-4 to select an option, then Enter or Right Arrow to continue.'}
             </div>
 
             <button
