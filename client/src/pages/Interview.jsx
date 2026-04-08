@@ -155,6 +155,11 @@ const Interview = () => {
     setCurrentIndex(index);
   };
 
+  const jumpToQuestion = useCallback((index) => {
+    setCurrentIndex(index);
+    setReviewMode(false);
+  }, []);
+
   const restartTopicSelection = () => {
     setTopic(null);
     setQuestions([]);
@@ -393,6 +398,30 @@ const Interview = () => {
             </div>
 
             <div className="space-y-4 mb-6">
+              <div className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900/30 p-5">
+                <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">
+                  Question Palette
+                </p>
+                <div className="grid grid-cols-5 sm:grid-cols-8 gap-3">
+                  {questions.map((question, index) => {
+                    const isAnswered = Boolean(answers[question._id]);
+                    return (
+                      <button
+                        key={question._id}
+                        onClick={() => jumpToQuestion(index)}
+                        className={`h-11 rounded-xl font-bold transition-colors ${
+                          isAnswered
+                            ? 'bg-blue-600 text-white hover:bg-blue-700'
+                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
+                        }`}
+                      >
+                        {index + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {questions.map((question, index) => {
                 const selectedAnswer = answers[question._id];
                 const answered = Boolean(selectedAnswer);
@@ -481,6 +510,34 @@ const Interview = () => {
                 className="h-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
+            </div>
+
+            <div className="mt-5">
+              <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
+                Question Palette
+              </p>
+              <div className="grid grid-cols-5 sm:grid-cols-8 gap-3">
+                {questions.map((question, index) => {
+                  const isCurrent = index === currentIndex;
+                  const isAnswered = Boolean(answers[question._id]);
+
+                  return (
+                    <button
+                      key={question._id}
+                      onClick={() => jumpToQuestion(index)}
+                      className={`h-11 rounded-xl font-bold transition-colors ${
+                        isCurrent
+                          ? 'bg-slate-900 dark:bg-blue-600 text-white'
+                          : isAnswered
+                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
