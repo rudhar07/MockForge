@@ -8,6 +8,7 @@ import {
   Box,
   Code,
   Clock,
+  Flag,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -27,6 +28,7 @@ const Interview = () => {
   const [submitting, setSubmitting] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
   const [answers, setAnswers] = useState({});
+  const [flaggedQuestions, setFlaggedQuestions] = useState({});
   const [reviewMode, setReviewMode] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -52,6 +54,7 @@ const Interview = () => {
       setReviewMode(false);
       setTimeLeft(600);
       setAnswers({});
+      setFlaggedQuestions({});
       answersRef.current = {};
 
       try {
@@ -160,6 +163,17 @@ const Interview = () => {
     setReviewMode(false);
   }, []);
 
+  const toggleFlagForCurrentQuestion = useCallback(() => {
+    if (!currentQ) {
+      return;
+    }
+
+    setFlaggedQuestions((prev) => ({
+      ...prev,
+      [currentQ._id]: !prev[currentQ._id],
+    }));
+  }, [currentQ]);
+
   const restartTopicSelection = () => {
     setTopic(null);
     setQuestions([]);
@@ -170,6 +184,7 @@ const Interview = () => {
     setSubmitting(false);
     setTimeLeft(600);
     setAnswers({});
+    setFlaggedQuestions({});
     setReviewMode(false);
     setFetchError('');
     setSubmitError('');
@@ -190,6 +205,7 @@ const Interview = () => {
     setReviewMode(false);
     setTimeLeft(600);
     setAnswers({});
+    setFlaggedQuestions({});
     answersRef.current = {};
 
     try {
@@ -405,14 +421,17 @@ const Interview = () => {
                 <div className="grid grid-cols-5 sm:grid-cols-8 gap-3">
                   {questions.map((question, index) => {
                     const isAnswered = Boolean(answers[question._id]);
+                    const isFlagged = Boolean(flaggedQuestions[question._id]);
                     return (
                       <button
                         key={question._id}
                         onClick={() => jumpToQuestion(index)}
                         className={`h-11 rounded-xl font-bold transition-colors ${
-                          isAnswered
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
+                          isFlagged
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/40'
+                            : isAnswered
+                              ? 'bg-blue-600 text-white hover:bg-blue-700'
+                              : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
                         }`}
                       >
                         {index + 1}
@@ -425,6 +444,7 @@ const Interview = () => {
               {questions.map((question, index) => {
                 const selectedAnswer = answers[question._id];
                 const answered = Boolean(selectedAnswer);
+                const isFlagged = Boolean(flaggedQuestions[question._id]);
 
                 return (
                   <div key={question._id} className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 bg-slate-50 dark:bg-gray-900/30">
@@ -435,6 +455,12 @@ const Interview = () => {
                         <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
                           {answered ? `Selected: ${selectedAnswer}` : 'No answer selected yet'}
                         </p>
+                        {isFlagged && (
+                          <p className="mt-2 inline-flex items-center text-sm font-semibold text-amber-600 dark:text-amber-400">
+                            <Flag className="h-4 w-4 mr-2" />
+                            Flagged for review
+                          </p>
+                        )}
                       </div>
                       <button
                         onClick={() => handleBackToQuestions(index)}
@@ -536,6 +562,7 @@ const Interview = () => {
                 {questions.map((question, index) => {
                   const isCurrent = index === currentIndex;
                   const isAnswered = Boolean(answers[question._id]);
+                  const isFlagged = Boolean(flaggedQuestions[question._id]);
 
                   return (
                     <button
@@ -544,9 +571,11 @@ const Interview = () => {
                       className={`h-11 xl:h-12 rounded-xl font-bold transition-colors xl:w-full ${
                         isCurrent
                           ? 'bg-slate-900 dark:bg-blue-600 text-white'
-                          : isAnswered
-                            ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
-                            : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
+                          : isFlagged
+                            ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-200 dark:hover:bg-amber-900/40'
+                            : isAnswered
+                              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50'
+                              : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:border-blue-400'
                       }`}
                     >
                       {index + 1}
@@ -565,6 +594,18 @@ const Interview = () => {
               <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-sm font-semibold text-blue-700 dark:text-blue-300">
                 {currentQ.marks ?? 0} points
               </span>
+              <button
+                type="button"
+                onClick={toggleFlagForCurrentQuestion}
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold transition-colors ${
+                  flaggedQuestions[currentQ._id]
+                    ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-amber-100 dark:hover:bg-amber-900/20'
+                }`}
+              >
+                <Flag className="h-4 w-4 mr-2" />
+                {flaggedQuestions[currentQ._id] ? 'Flagged' : 'Flag For Review'}
+              </button>
             </div>
 
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
