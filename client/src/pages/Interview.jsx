@@ -9,6 +9,7 @@ import {
   Code,
   Clock,
   Flag,
+  Sparkles,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -23,6 +24,7 @@ const Interview = () => {
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
+  const [aiReview, setAiReview] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -97,6 +99,7 @@ const Interview = () => {
       );
 
       setScore(data.score);
+      setAiReview(data.aiReview ?? null);
       setShowResult(true);
       setReviewMode(false);
     } catch (error) {
@@ -179,6 +182,7 @@ const Interview = () => {
     setQuestions([]);
     setCurrentIndex(0);
     setScore(0);
+    setAiReview(null);
     setShowResult(false);
     setLoading(false);
     setSubmitting(false);
@@ -375,6 +379,36 @@ const Interview = () => {
               <p className="mt-2 text-3xl font-black text-gray-900 dark:text-white">{answeredCount}<span className="text-lg text-gray-500">/{questions.length}</span></p>
             </div>
           </div>
+
+          {aiReview && (
+            <div className="mb-8 rounded-3xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-900/10 p-6 text-left">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                  <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                    AI Coach Review
+                  </p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    {aiReview.status === 'ready'
+                      ? `Generated with ${aiReview.provider}`
+                      : 'Setup note'}
+                  </p>
+                </div>
+              </div>
+
+              {aiReview.content ? (
+                <p className="whitespace-pre-line text-gray-700 dark:text-gray-200 leading-7">
+                  {aiReview.content}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {aiReview.message || 'AI review is currently unavailable for this attempt.'}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <button

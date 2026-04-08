@@ -1,6 +1,81 @@
 import Submission from '../models/Submission.js';
 import Question from '../models/Questions.js';
 
+const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) => {
+  const apiKey = process.env.OPENROUTER_API_KEY;
+
+  if (!apiKey) {
+    return {
+      status: 'unavailable',
+      content: '',
+      provider: 'openrouter/free',
+      message: 'Add OPENROUTER_API_KEY to enable free AI review.',
+    };
+  }
+
+  const accuracy = totalPossible > 0 ? Math.round((score / totalPossible) * 100) : 0;
+  const compactReview = reviewItems.map((item) => ({
+    title: item.title,
+    selectedAnswer: item.selectedAnswer || 'No answer selected',
+    correctAnswer: item.correctAnswer,
+    isCorrect: item.isCorrect,
+    explanation: item.explanation || 'No explanation provided.',
+  }));
+
+  try {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: process.env.OPENROUTER_MODEL || 'openrouter/free',
+        temperature: 0.4,
+        max_tokens: 260,
+        messages: [
+          {
+            role: 'system',
+            content:
+              'You are an interview coach. Write concise, practical feedback for a mock interview attempt. Use plain text only. Keep it under 140 words. Include three short sections titled Overall, Strengths, and Next focus.',
+          },
+          {
+            role: 'user',
+            content: JSON.stringify({
+              topic,
+              score,
+              totalPossible,
+              accuracy,
+              questions: compactReview,
+            }),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenRouter request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content?.trim() || '';
+
+    return {
+      status: content ? 'ready' : 'empty',
+      content,
+      provider: data.model || process.env.OPENROUTER_MODEL || 'openrouter/free',
+      message: content ? '' : 'AI review returned an empty response.',
+    };
+  } catch (error) {
+    return {
+      status: 'error',
+      content: '',
+      provider: process.env.OPENROUTER_MODEL || 'openrouter/free',
+      message: error.message,
+    };
+  }
+};
+
 // @desc    Save an interview score securely
 // @route   POST /api/submissions
 export const saveSubmission = async (req, res) => {
@@ -28,6 +103,7 @@ export const saveSubmission = async (req, res) => {
 
     let score = 0;
     let totalPossible = 0;
+    const reviewItems = [];
 
     for (const question of questions) {
       totalPossible += question.marks ?? 0;
@@ -35,9 +111,20 @@ export const saveSubmission = async (req, res) => {
 
     for (const question of questions) {
       const selectedOption = responseMap.get(question._id.toString());
-      if (selectedOption === question.correctAnswer) {
+      const isCorrect = selectedOption === question.correctAnswer;
+
+      if (isCorrect) {
         score += question.marks ?? 0;
       }
+
+      reviewItems.push({
+        questionId: question._id.toString(),
+        title: question.title,
+        selectedAnswer: selectedOption ?? '',
+        correctAnswer: question.correctAnswer,
+        isCorrect,
+        explanation: question.explanation ?? '',
+      });
     }
 
     const submission = new Submission({
@@ -48,10 +135,13 @@ export const saveSubmission = async (req, res) => {
     });
 
     const savedSubmission = await submission.save();
+    const aiReview = await generateAiReview({ topic, score, totalPossible, reviewItems });
+
     res.status(201).json({
       ...savedSubmission.toObject(),
       score,
       totalPossible,
+      aiReview,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
