@@ -34,6 +34,7 @@ const Interview = () => {
   const [reviewMode, setReviewMode] = useState(false);
   const [fetchError, setFetchError] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [regeneratingReview, setRegeneratingReview] = useState(false);
   const answersRef = useRef({});
   const submitInterviewRef = useRef(null);
 
@@ -77,12 +78,17 @@ const Interview = () => {
   const progress = questions.length ? ((answeredCount / questions.length) * 100).toFixed(0) : 0;
   const currentQ = questions[currentIndex];
 
-  const submitInterview = useCallback(async (answerMap = answers) => {
+  const submitInterview = useCallback(async (answerMap = answers, options = {}) => {
     if (!topic || submitting) {
       return;
     }
 
-    setSubmitting(true);
+    const { regenerate = false } = options;
+    if (regenerate) {
+      setRegeneratingReview(true);
+    } else {
+      setSubmitting(true);
+    }
     setSubmitError('');
 
     try {
@@ -91,10 +97,13 @@ const Interview = () => {
         questionId,
         selectedOption,
       }));
+      const flaggedQuestionIds = Object.entries(flaggedQuestions)
+        .filter(([, isFlagged]) => Boolean(isFlagged))
+        .map(([questionId]) => questionId);
 
       const { data } = await API.post(
         '/submissions',
-        { topic, responses },
+        { topic, responses, flaggedQuestionIds },
         config
       );
 
@@ -105,9 +114,13 @@ const Interview = () => {
     } catch (error) {
       setSubmitError(error.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
-      setSubmitting(false);
+      if (regenerate) {
+        setRegeneratingReview(false);
+      } else {
+        setSubmitting(false);
+      }
     }
-  }, [answers, submitting, topic, user.token]);
+  }, [answers, flaggedQuestions, submitting, topic, user.token]);
 
   useEffect(() => {
     submitInterviewRef.current = submitInterview;
@@ -382,20 +395,30 @@ const Interview = () => {
 
           {aiReview && (
             <div className="mb-8 rounded-3xl border border-blue-100 dark:border-blue-900/40 bg-blue-50/70 dark:bg-blue-900/10 p-6 text-left">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
-                  <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-2xl bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm">
+                    <Sparkles className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                      AI Coach Review
+                    </p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      {aiReview.status === 'ready'
+                        ? `Generated with ${aiReview.provider}`
+                        : 'Setup note'}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
-                    AI Coach Review
-                  </p>
-                  <p className="text-sm text-blue-600 dark:text-blue-400">
-                    {aiReview.status === 'ready'
-                      ? `Generated with ${aiReview.provider}`
-                      : 'Setup note'}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => submitInterview(answers, { regenerate: true })}
+                  disabled={regeneratingReview || submitting}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-xl bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-900/40 text-blue-700 dark:text-blue-300 font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {regeneratingReview ? 'Regenerating...' : 'Regenerate Review'}
+                </button>
               </div>
 
               {aiReview.content ? (

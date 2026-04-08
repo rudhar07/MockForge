@@ -1,7 +1,7 @@
 import Submission from '../models/Submission.js';
 import Question from '../models/Questions.js';
 
-const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) => {
+const generateAiReview = async ({ topic, score, totalPossible, reviewItems, flaggedQuestionIds = [] }) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
@@ -20,6 +20,7 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) =>
     correctAnswer: item.correctAnswer,
     isCorrect: item.isCorrect,
     explanation: item.explanation || 'No explanation provided.',
+    flaggedForReview: flaggedQuestionIds.includes(item.questionId),
   }));
 
   try {
@@ -37,7 +38,7 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) =>
           {
             role: 'system',
             content:
-              'You are an interview coach. Write concise, practical feedback for a mock interview attempt. Use plain text only. Keep it under 140 words. Include three short sections titled Overall, Strengths, and Next focus.',
+              'You are an interview coach. Write concise, practical feedback for a mock interview attempt. Use plain text only. Keep it under 180 words. Format the response as exactly three short sections titled Overall, Strengths, and Next Focus. In Next Focus, include topic-specific study suggestions. Mention flagged questions when they reveal uncertainty patterns.',
           },
           {
             role: 'user',
@@ -46,6 +47,7 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) =>
               score,
               totalPossible,
               accuracy,
+              flaggedQuestionIds,
               questions: compactReview,
             }),
           },
@@ -80,7 +82,7 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems }) =>
 // @route   POST /api/submissions
 export const saveSubmission = async (req, res) => {
   try {
-    const { topic, responses = [] } = req.body;
+    const { topic, responses = [], flaggedQuestionIds = [] } = req.body;
 
     if (!topic) {
       return res.status(400).json({ message: 'Topic is required' });
@@ -88,6 +90,10 @@ export const saveSubmission = async (req, res) => {
 
     if (!Array.isArray(responses)) {
       return res.status(400).json({ message: 'Responses must be an array' });
+    }
+
+    if (!Array.isArray(flaggedQuestionIds)) {
+      return res.status(400).json({ message: 'Flagged question ids must be an array' });
     }
 
     const questions = await Question.find({ topic }).lean();
@@ -135,7 +141,13 @@ export const saveSubmission = async (req, res) => {
     });
 
     const savedSubmission = await submission.save();
-    const aiReview = await generateAiReview({ topic, score, totalPossible, reviewItems });
+    const aiReview = await generateAiReview({
+      topic,
+      score,
+      totalPossible,
+      reviewItems,
+      flaggedQuestionIds,
+    });
 
     res.status(201).json({
       ...savedSubmission.toObject(),
