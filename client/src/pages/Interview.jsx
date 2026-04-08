@@ -477,7 +477,7 @@ const Interview = () => {
 
   return (
     <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-5">
             <div>
@@ -511,12 +511,28 @@ const Interview = () => {
                 style={{ width: `${progress}%` }}
               />
             </div>
+          </div>
+        </div>
 
-            <div className="mt-5">
-              <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">
-                Question Palette
-              </p>
-              <div className="grid grid-cols-5 sm:grid-cols-8 gap-3">
+        <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
+          <aside className="xl:sticky xl:top-24">
+            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+              <div className="flex items-center justify-between gap-3 xl:flex-col xl:items-start xl:justify-start">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    Question Palette
+                  </p>
+                  <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                    Jump between questions anytime.
+                  </p>
+                </div>
+                <div className="text-right xl:text-left">
+                  <p className="text-2xl font-black text-gray-900 dark:text-white">{answeredCount}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">answered</p>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-5 sm:grid-cols-8 xl:grid-cols-1 gap-3">
                 {questions.map((question, index) => {
                   const isCurrent = index === currentIndex;
                   const isAnswered = Boolean(answers[question._id]);
@@ -525,7 +541,7 @@ const Interview = () => {
                     <button
                       key={question._id}
                       onClick={() => jumpToQuestion(index)}
-                      className={`h-11 rounded-xl font-bold transition-colors ${
+                      className={`h-11 xl:h-12 rounded-xl font-bold transition-colors xl:w-full ${
                         isCurrent
                           ? 'bg-slate-900 dark:bg-blue-600 text-white'
                           : isAnswered
@@ -539,72 +555,72 @@ const Interview = () => {
                 })}
               </div>
             </div>
-          </div>
-        </div>
+          </aside>
 
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8 transition-colors duration-300">
-          <div className="flex flex-wrap gap-2 mb-5">
-            <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-sm font-semibold text-slate-700 dark:text-gray-200 capitalize">
-              {currentQ.difficulty}
-            </span>
-            <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-sm font-semibold text-blue-700 dark:text-blue-300">
-              {currentQ.marks ?? 0} points
-            </span>
-          </div>
-
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg">{currentQ.description}</p>
-
-          <div className="space-y-4">
-            {currentQ.options.map((option, idx) => {
-              const isSelected = answers[currentQ._id] === option;
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => handleSelectAnswer(option)}
-                  className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
-                    isSelected
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
-                      : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  {option}
-                </button>
-              );
-            })}
-          </div>
-
-          {submitError && (
-            <div className="mt-6 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-4 py-3 text-red-700 dark:text-red-300">
-              {submitError}
-            </div>
-          )}
-
-          <div className="mt-8 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
-            <button
-              onClick={handlePrevious}
-              disabled={currentIndex === 0}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <ChevronLeft className="h-4 w-4 mr-2" />
-              Previous
-            </button>
-
-            <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-              {answers[currentQ._id]
-                ? 'Answer selected and ready. Use Enter or Right Arrow to continue.'
-                : 'Press 1-4 to select an option, then Enter or Right Arrow to continue.'}
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8 transition-colors duration-300">
+            <div className="flex flex-wrap gap-2 mb-5">
+              <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-sm font-semibold text-slate-700 dark:text-gray-200 capitalize">
+                {currentQ.difficulty}
+              </span>
+              <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-sm font-semibold text-blue-700 dark:text-blue-300">
+                {currentQ.marks ?? 0} points
+              </span>
             </div>
 
-            <button
-              onClick={handleNext}
-              disabled={!answers[currentQ._id]}
-              className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {currentIndex === questions.length - 1 ? 'Review Answers' : 'Next Question'}
-              <ChevronRight className="h-4 w-4 ml-2" />
-            </button>
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg">{currentQ.description}</p>
+
+            <div className="space-y-4">
+              {currentQ.options.map((option, idx) => {
+                const isSelected = answers[currentQ._id] === option;
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => handleSelectAnswer(option)}
+                    className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
+                      isSelected
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
+                        : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
+                    }`}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+
+            {submitError && (
+              <div className="mt-6 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-4 py-3 text-red-700 dark:text-red-300">
+                {submitError}
+              </div>
+            )}
+
+            <div className="mt-8 flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+              <button
+                onClick={handlePrevious}
+                disabled={currentIndex === 0}
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="h-4 w-4 mr-2" />
+                Previous
+              </button>
+
+              <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                {answers[currentQ._id]
+                  ? 'Answer selected and ready. Use Enter or Right Arrow to continue.'
+                  : 'Press 1-4 to select an option, then Enter or Right Arrow to continue.'}
+              </div>
+
+              <button
+                onClick={handleNext}
+                disabled={!answers[currentQ._id]}
+                className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {currentIndex === questions.length - 1 ? 'Review Answers' : 'Next Question'}
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
