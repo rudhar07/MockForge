@@ -13,6 +13,9 @@ import {
   CalendarDays,
   BookOpenCheck,
   AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  Sparkles,
 } from 'lucide-react';
 import API from '../api/axios';
 
@@ -110,12 +113,14 @@ const Dashboard = () => {
           totalPercentage: 0,
           bestPercentage: 0,
           lastAttemptAt: attempt.createdAt,
+          recentPercentages: [],
         };
       }
 
       acc[attempt.topic].attempts += 1;
       acc[attempt.topic].totalPercentage += percentage;
       acc[attempt.topic].bestPercentage = Math.max(acc[attempt.topic].bestPercentage, percentage);
+      acc[attempt.topic].recentPercentages.push(percentage);
 
       if (new Date(attempt.createdAt) > new Date(acc[attempt.topic].lastAttemptAt)) {
         acc[attempt.topic].lastAttemptAt = attempt.createdAt;
@@ -127,8 +132,49 @@ const Dashboard = () => {
     .map((entry) => ({
       ...entry,
       averagePercentage: Math.round(entry.totalPercentage / entry.attempts),
+      recentPercentages: entry.recentPercentages.slice(0, 3),
     }))
+    .map((entry) => {
+      const latestPercentage = entry.recentPercentages[0] ?? entry.averagePercentage;
+      const baselineWindow = entry.recentPercentages.slice(1);
+      const baseline = baselineWindow.length
+        ? Math.round(baselineWindow.reduce((sum, value) => sum + value, 0) / baselineWindow.length)
+        : latestPercentage;
+      const trendDelta = latestPercentage - baseline;
+
+      let mastery = 'Needs Work';
+      let masteryTone = 'rose';
+      if (entry.averagePercentage >= 80) {
+        mastery = 'Strong';
+        masteryTone = 'emerald';
+      } else if (entry.averagePercentage >= 60) {
+        mastery = 'Improving';
+        masteryTone = 'blue';
+      }
+
+      let trendLabel = 'Stable';
+      if (trendDelta >= 8) {
+        trendLabel = 'Rising';
+      } else if (trendDelta <= -8) {
+        trendLabel = 'Cooling';
+      }
+
+      return {
+        ...entry,
+        latestPercentage,
+        trendDelta,
+        trendLabel,
+        mastery,
+        masteryTone,
+      };
+    })
     .sort((a, b) => b.averagePercentage - a.averagePercentage);
+
+  const strongestTopic = topicProgress[0] ?? null;
+  const weakestTopic = [...topicProgress].sort((a, b) => a.averagePercentage - b.averagePercentage)[0] ?? null;
+  const risingTopic = [...topicProgress]
+    .filter((entry) => entry.trendDelta > 0)
+    .sort((a, b) => b.trendDelta - a.trendDelta)[0] ?? null;
 
   const statCards = [
     {
@@ -297,8 +343,53 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Topic Progress</h2>
-            <p className="mt-2 text-gray-600 dark:text-gray-400">See which topics are improving and where you should focus next.</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Topic Mastery</h2>
+            <p className="mt-2 text-gray-600 dark:text-gray-400">See which topics are strongest, where momentum is building, and what needs attention next.</p>
+
+            {topicProgress.length > 0 && (
+              <div className="mt-6 grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="rounded-2xl border border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/70 dark:bg-emerald-900/10 p-4">
+                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-semibold">
+                      <Sparkles className="h-4 w-4" />
+                      Strongest Topic
+                    </div>
+                    <p className="mt-3 text-lg font-bold text-gray-900 dark:text-white capitalize">
+                      {strongestTopic?.topic ?? '--'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {strongestTopic ? `${strongestTopic.averagePercentage}% average` : 'Complete more rounds to surface strengths.'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-rose-100 dark:border-rose-900/30 bg-rose-50/70 dark:bg-rose-900/10 p-4">
+                    <div className="flex items-center gap-2 text-rose-700 dark:text-rose-300 font-semibold">
+                      <TrendingDown className="h-4 w-4" />
+                      Needs Attention
+                    </div>
+                    <p className="mt-3 text-lg font-bold text-gray-900 dark:text-white capitalize">
+                      {weakestTopic?.topic ?? '--'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {weakestTopic ? `${weakestTopic.averagePercentage}% average` : 'Weak areas appear after a few attempts.'}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-blue-100 dark:border-blue-900/30 bg-blue-50/70 dark:bg-blue-900/10 p-4">
+                    <div className="flex items-center gap-2 text-blue-700 dark:text-blue-300 font-semibold">
+                      <TrendingUp className="h-4 w-4" />
+                      Momentum
+                    </div>
+                    <p className="mt-3 text-lg font-bold text-gray-900 dark:text-white capitalize">
+                      {risingTopic?.topic ?? '--'}
+                    </p>
+                    <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                      {risingTopic ? `Up ${Math.max(risingTopic.trendDelta, 0)} points recently` : 'Momentum appears once you revisit a topic.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="mt-8 space-y-5">
               {topicProgress.length === 0 ? (
@@ -310,18 +401,44 @@ const Dashboard = () => {
                   <div key={topic.topic} className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900/30 p-5">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">{topic.topic}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {topic.attempts} attempt{topic.attempts === 1 ? '' : 's'} - best {topic.bestPercentage}%
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-lg font-bold text-gray-900 dark:text-white capitalize">{topic.topic}</p>
+                          <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${toneMap[topic.masteryTone]}`}>
+                            {topic.mastery}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                          {topic.attempts} attempt{topic.attempts === 1 ? '' : 's'} - best {topic.bestPercentage}% - latest {topic.latestPercentage}%
                         </p>
                       </div>
-                      <span className="text-xl font-black text-gray-900 dark:text-white">{topic.averagePercentage}%</span>
+                      <div className="text-right">
+                        <span className="text-xl font-black text-gray-900 dark:text-white">{topic.averagePercentage}%</span>
+                        <p className={`mt-1 text-xs font-semibold ${
+                          topic.trendDelta > 0
+                            ? 'text-emerald-600 dark:text-emerald-400'
+                            : topic.trendDelta < 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {topic.trendLabel}
+                          {topic.trendDelta !== 0 ? ` ${topic.trendDelta > 0 ? '+' : ''}${topic.trendDelta}` : ''}
+                        </p>
+                      </div>
                     </div>
                     <div className="mt-4 h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500"
                         style={{ width: `${Math.min(topic.averagePercentage, 100)}%` }}
                       />
+                    </div>
+                    <div className="mt-4 flex items-center gap-2">
+                      {topic.recentPercentages.map((value, index) => (
+                        <div
+                          key={`${topic.topic}-${value}-${index}`}
+                          className="h-2 rounded-full bg-blue-500/80 dark:bg-blue-400/70"
+                          style={{ width: `${Math.max(value, 8)}%` }}
+                        />
+                      ))}
                     </div>
                     <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
                       Last practiced on {new Date(topic.lastAttemptAt).toLocaleDateString()}
