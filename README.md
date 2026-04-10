@@ -19,6 +19,7 @@
 | 📝 **Curated Question Bank** | MCQ questions across Arrays, Graphs, DP, and OOP — managed by admins |
 | ⏱️ **Timed Interview Sessions** | 10-minute countdown timer with auto-submit on timeout |
 | 📊 **Topic-Based Interviews** | Pick a specific topic to focus your practice session |
+| 🤖 **AI Coach Review** | Generate post-interview feedback with structured Overall, Strengths, and Next Focus guidance |
 | 🏆 **Global Leaderboard** | Top 10 highest scores across all users — Hall of Fame |
 | 📈 **Attempt History** | Track every interview score, topic, and date on your dashboard |
 | 🛡️ **Admin Dashboard** | Role-based admin panel to create and manage questions |
