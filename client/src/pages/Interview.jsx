@@ -20,6 +20,7 @@ import {
 const Interview = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
+  const storageKey = user?._id ? `mockforge:interview:${user._id}` : null;
   const [topic, setTopic] = useState(null);
   const [questions, setQuestions] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -35,12 +36,33 @@ const Interview = () => {
   const [fetchError, setFetchError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [regeneratingReview, setRegeneratingReview] = useState(false);
+  const [resumeCandidate, setResumeCandidate] = useState(null);
   const answersRef = useRef({});
   const submitInterviewRef = useRef(null);
 
   useEffect(() => {
     answersRef.current = answers;
   }, [answers]);
+
+  useEffect(() => {
+    if (!storageKey) {
+      return;
+    }
+
+    const savedSession = localStorage.getItem(storageKey);
+    if (!savedSession) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(savedSession);
+      if (parsed?.topic) {
+        setResumeCandidate(parsed);
+      }
+    } catch {
+      localStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
 
   // It physically legally cannot run until `topic` is chosen!
   useEffect(() => {
@@ -111,6 +133,9 @@ const Interview = () => {
       setAiReview(data.aiReview ?? null);
       setShowResult(true);
       setReviewMode(false);
+      if (storageKey) {
+        localStorage.removeItem(storageKey);
+      }
     } catch (error) {
       setSubmitError(error.response?.data?.message || 'Submission failed. Please try again.');
     } finally {
@@ -120,7 +145,7 @@ const Interview = () => {
         setSubmitting(false);
       }
     }
-  }, [answers, flaggedQuestions, submitting, topic, user.token]);
+  }, [answers, flaggedQuestions, storageKey, submitting, topic, user.token]);
 
   useEffect(() => {
     submitInterviewRef.current = submitInterview;
@@ -190,6 +215,21 @@ const Interview = () => {
     }));
   }, [currentQ]);
 
+  const restoreSavedInterview = useCallback(() => {
+    if (!resumeCandidate?.topic) {
+      return;
+    }
+
+    setTopic(resumeCandidate.topic);
+    setCurrentIndex(resumeCandidate.currentIndex ?? 0);
+    setTimeLeft(resumeCandidate.timeLeft ?? 600);
+    setAnswers(resumeCandidate.answers ?? {});
+    setFlaggedQuestions(resumeCandidate.flaggedQuestions ?? {});
+    answersRef.current = resumeCandidate.answers ?? {};
+    setReviewMode(Boolean(resumeCandidate.reviewMode));
+    setResumeCandidate(null);
+  }, [resumeCandidate]);
+
   const restartTopicSelection = () => {
     setTopic(null);
     setQuestions([]);
@@ -205,6 +245,10 @@ const Interview = () => {
     setReviewMode(false);
     setFetchError('');
     setSubmitError('');
+    setResumeCandidate(null);
+    if (storageKey) {
+      localStorage.removeItem(storageKey);
+    }
   };
 
   const retryCurrentTopic = async () => {
@@ -278,10 +322,60 @@ const Interview = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [answers, currentQ, handleNext, handlePrevious, handleSelectAnswer, loading, reviewMode, showResult, submitting, topic]);
 
+  useEffect(() => {
+    if (!storageKey || !topic || showResult) {
+      return;
+    }
+
+    const snapshot = {
+      topic,
+      currentIndex,
+      timeLeft,
+      answers,
+      flaggedQuestions,
+      reviewMode,
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(storageKey, JSON.stringify(snapshot));
+  }, [answers, currentIndex, flaggedQuestions, reviewMode, showResult, storageKey, timeLeft, topic]);
+
   if (!topic) {
     return (
       <div className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-300">
         <div className="max-w-4xl mx-auto w-full">
+          {resumeCandidate?.topic && (
+            <div className="mb-8 rounded-3xl border border-blue-100 dark:border-blue-900/40 bg-white dark:bg-gray-800 p-6 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
+                    Saved Interview Found
+                  </p>
+                  <h2 className="mt-2 text-2xl font-bold text-gray-900 dark:text-white capitalize">
+                    Resume your {resumeCandidate.topic} round
+                  </h2>
+                  <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    Question {(resumeCandidate.currentIndex ?? 0) + 1}, {Object.keys(resumeCandidate.answers ?? {}).length} answered, {Math.max(resumeCandidate.timeLeft ?? 600, 0)} seconds remaining.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={restoreSavedInterview}
+                    className="px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    Resume Interview
+                  </button>
+                  <button
+                    onClick={restartTopicSelection}
+                    className="px-5 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 font-semibold"
+                  >
+                    Start Fresh
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="text-center mb-12">
             <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Select Interview Topic</h1>
             <p className="text-xl text-gray-600 dark:text-gray-400">Choose a focused practice round and step into interview mode.</p>
