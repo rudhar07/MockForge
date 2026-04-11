@@ -123,8 +123,10 @@ const Interview = () => {
         .filter(([, isFlagged]) => Boolean(isFlagged))
         .map(([questionId]) => questionId);
 
+      const endpoint = regenerate ? '/submissions/review' : '/submissions';
+
       const { data } = await API.post(
-        '/submissions',
+        endpoint,
         { topic, responses, flaggedQuestionIds },
         config
       );

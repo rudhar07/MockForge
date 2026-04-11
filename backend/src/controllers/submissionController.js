@@ -78,6 +78,47 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems, flag
   }
 };
 
+const buildReviewFromResponses = async ({ topic, responses = [] }) => {
+  const questions = await Question.find({ topic }).lean();
+
+  const responseMap = new Map();
+  for (const response of responses) {
+    if (!response?.questionId) {
+      continue;
+    }
+
+    responseMap.set(response.questionId, response.selectedOption);
+  }
+
+  let score = 0;
+  let totalPossible = 0;
+  const reviewItems = [];
+
+  for (const question of questions) {
+    totalPossible += question.marks ?? 0;
+  }
+
+  for (const question of questions) {
+    const selectedOption = responseMap.get(question._id.toString());
+    const isCorrect = selectedOption === question.correctAnswer;
+
+    if (isCorrect) {
+      score += question.marks ?? 0;
+    }
+
+    reviewItems.push({
+      questionId: question._id.toString(),
+      title: question.title,
+      selectedAnswer: selectedOption ?? '',
+      correctAnswer: question.correctAnswer,
+      isCorrect,
+      explanation: question.explanation ?? '',
+    });
+  }
+
+  return { score, totalPossible, reviewItems };
+};
+
 // @desc    Save an interview score securely
 // @route   POST /api/submissions
 export const saveSubmission = async (req, res) => {
@@ -96,42 +137,7 @@ export const saveSubmission = async (req, res) => {
       return res.status(400).json({ message: 'Flagged question ids must be an array' });
     }
 
-    const questions = await Question.find({ topic }).lean();
-
-    const responseMap = new Map();
-    for (const response of responses) {
-      if (!response?.questionId) {
-        continue;
-      }
-
-      responseMap.set(response.questionId, response.selectedOption);
-    }
-
-    let score = 0;
-    let totalPossible = 0;
-    const reviewItems = [];
-
-    for (const question of questions) {
-      totalPossible += question.marks ?? 0;
-    }
-
-    for (const question of questions) {
-      const selectedOption = responseMap.get(question._id.toString());
-      const isCorrect = selectedOption === question.correctAnswer;
-
-      if (isCorrect) {
-        score += question.marks ?? 0;
-      }
-
-      reviewItems.push({
-        questionId: question._id.toString(),
-        title: question.title,
-        selectedAnswer: selectedOption ?? '',
-        correctAnswer: question.correctAnswer,
-        isCorrect,
-        explanation: question.explanation ?? '',
-      });
-    }
+    const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
 
     const submission = new Submission({
       user: req.user._id, // This is safely grabbed from the JWT token via our Auth Middleware
@@ -151,6 +157,43 @@ export const saveSubmission = async (req, res) => {
 
     res.status(201).json({
       ...savedSubmission.toObject(),
+      score,
+      totalPossible,
+      aiReview,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Regenerate AI review without saving a new submission
+// @route   POST /api/submissions/review
+export const regenerateSubmissionReview = async (req, res) => {
+  try {
+    const { topic, responses = [], flaggedQuestionIds = [] } = req.body;
+
+    if (!topic) {
+      return res.status(400).json({ message: 'Topic is required' });
+    }
+
+    if (!Array.isArray(responses)) {
+      return res.status(400).json({ message: 'Responses must be an array' });
+    }
+
+    if (!Array.isArray(flaggedQuestionIds)) {
+      return res.status(400).json({ message: 'Flagged question ids must be an array' });
+    }
+
+    const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
+    const aiReview = await generateAiReview({
+      topic,
+      score,
+      totalPossible,
+      reviewItems,
+      flaggedQuestionIds,
+    });
+
+    res.json({
       score,
       totalPossible,
       aiReview,
