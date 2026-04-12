@@ -3,6 +3,43 @@ import { AuthContext } from '../context/AuthContext';
 import API from '../api/axios';
 import { Trophy, Medal, Star } from 'lucide-react';
 
+const LeaderboardSkeleton = () => (
+  <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-300 animate-pulse">
+    <div className="max-w-4xl mx-auto space-y-8">
+      <div className="rounded-xl shadow-lg p-8 bg-gradient-to-r from-yellow-500/90 to-yellow-600/90 dark:from-yellow-600/80 dark:to-amber-700/80">
+        <div className="space-y-4">
+          <div className="h-10 w-72 rounded-2xl bg-white/25" />
+          <div className="h-5 w-96 rounded-full bg-white/20" />
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden transition-colors duration-300">
+        {[...Array(6)].map((_, index) => (
+          <div
+            key={index}
+            className={`flex items-center justify-between p-6 border-b border-gray-50 dark:border-gray-700 ${
+              index < 3 ? 'bg-yellow-50/30 dark:bg-yellow-900/10' : ''
+            }`}
+          >
+            <div className="flex items-center gap-4">
+              <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="space-y-3">
+                <div className="h-6 w-48 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+                <div className="h-4 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+              </div>
+            </div>
+            <div className="space-y-3 text-right">
+              <div className="h-8 w-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-24 rounded-full bg-gray-200 dark:bg-gray-700 ml-auto" />
+              <div className="h-4 w-20 rounded-full bg-gray-200 dark:bg-gray-700 ml-auto" />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const Leaderboard = () => {
   const { user } = useContext(AuthContext);
   const [leaders, setLeaders] = useState([]);
@@ -24,11 +61,7 @@ const Leaderboard = () => {
   }, [user]);
 
   if (loading) {
-    return (
-      <div className="flex-grow flex items-center justify-center py-32">
-        <div className="w-16 h-16 border-4 border-yellow-200 dark:border-yellow-900 border-t-yellow-500 dark:border-t-yellow-400 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LeaderboardSkeleton />;
   }
 
   return (

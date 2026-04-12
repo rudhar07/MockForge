@@ -5,6 +5,33 @@ import toast from 'react-hot-toast';
 import { ShieldCheck, PencilLine, Trash2, Search, RefreshCw, PlusCircle } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
+const QuestionBankSkeleton = () => (
+  <div className="space-y-4 animate-pulse">
+    {[...Array(4)].map((_, index) => (
+      <div key={index} className="rounded-2xl border border-gray-100 dark:border-gray-700 p-5 bg-slate-50 dark:bg-gray-900/30">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
+          <div className="space-y-3 flex-1">
+            <div className="flex flex-wrap gap-2">
+              <div className="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-6 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <div className="space-y-3">
+              <div className="h-6 w-2/3 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-full rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-5/6 rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+          </div>
+          <div className="flex flex-row lg:flex-col gap-3">
+            <div className="h-10 w-24 rounded-xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-10 w-24 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const AdminDashboard = () => {
   const { user } = useContext(AuthContext);
   const initialFormState = {
@@ -309,9 +336,7 @@ const AdminDashboard = () => {
 
             <div className="space-y-4">
               {loadingQuestions ? (
-                <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-10 text-center text-gray-500 dark:text-gray-400">
-                  Loading questions...
-                </div>
+                <QuestionBankSkeleton />
               ) : filteredQuestions.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-gray-200 dark:border-gray-700 p-10 text-center text-gray-500 dark:text-gray-400">
                   No questions match the current filters.

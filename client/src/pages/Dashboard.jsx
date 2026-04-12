@@ -19,6 +19,92 @@ import {
 } from 'lucide-react';
 import API from '../api/axios';
 
+const DashboardSkeleton = () => (
+  <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8 animate-pulse">
+    <div className="max-w-7xl mx-auto space-y-8">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 lg:p-10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="space-y-4 flex-1">
+            <div className="h-4 w-40 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-12 max-w-lg rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 max-w-2xl rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="hidden lg:block h-24 w-24 rounded-3xl bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+        {[...Array(4)].map((_, index) => (
+          <div key={index} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+            <div className="h-12 w-12 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="mt-5 h-4 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="mt-3 h-9 w-24 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="mt-3 h-4 w-40 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_1fr] gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-3">
+              <div className="h-8 w-52 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+              <div className="h-4 w-80 rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <div className="h-12 w-40 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900/30 p-5">
+                <div className="h-5 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+                <div className="mt-4 h-8 w-32 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+                <div className="mt-3 h-4 w-36 rounded-full bg-gray-200 dark:bg-gray-700" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 space-y-5">
+          <div className="space-y-3">
+            <div className="h-8 w-44 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-72 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          {[...Array(3)].map((_, index) => (
+            <div key={index} className="rounded-2xl border border-gray-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900/30 p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div className="space-y-3">
+                  <div className="h-6 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-40 rounded-full bg-gray-200 dark:bg-gray-700" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-8 w-14 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+                  <div className="h-4 w-16 rounded-full bg-gray-200 dark:bg-gray-700" />
+                </div>
+              </div>
+              <div className="mt-4 h-3 rounded-full bg-gray-200 dark:bg-gray-700" />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 p-8">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="h-8 w-56 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+          <div className="h-4 w-28 rounded-full bg-gray-200 dark:bg-gray-700" />
+        </div>
+        <div className="space-y-4">
+          {[...Array(4)].map((_, index) => (
+            <div key={index} className="grid grid-cols-4 gap-4">
+              {[...Array(4)].map((__, cellIndex) => (
+                <div key={cellIndex} className="h-5 rounded-full bg-gray-200 dark:bg-gray-700" />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+);
 
 const Dashboard = () => {
   const { user } = useContext(AuthContext);
@@ -214,15 +300,7 @@ const Dashboard = () => {
     rose: 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-300 border-rose-100 dark:border-rose-900/30',
   };
   if (loading) {
-    return (
-      <div className="flex-grow flex items-center justify-center py-24 px-4">
-        <div className="text-center">
-          <div className="w-16 h-16 mx-auto border-4 border-blue-100 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin" />
-          <h2 className="mt-6 text-2xl font-bold text-gray-900 dark:text-white">Loading your dashboard</h2>
-          <p className="mt-2 text-gray-500 dark:text-gray-400">Crunching your interview history and progress.</p>
-        </div>
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   if (error) {

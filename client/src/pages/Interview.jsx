@@ -17,6 +17,71 @@ import {
   FileCheck,
 } from 'lucide-react';
 
+const InterviewLoadingSkeleton = () => (
+  <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8 animate-pulse">
+    <div className="max-w-6xl mx-auto space-y-8">
+      <div className="space-y-5">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5">
+          <div className="space-y-3">
+            <div className="h-4 w-32 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-10 w-60 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-80 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="h-11 w-28 rounded-xl bg-gray-200 dark:bg-gray-700" />
+        </div>
+
+        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+            <div className="space-y-2">
+              <div className="h-4 w-20 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="h-7 w-44 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            </div>
+            <div className="h-10 w-40 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="h-3 rounded-full bg-gray-200 dark:bg-gray-700" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
+        <aside className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+          <div className="space-y-3">
+            <div className="h-4 w-32 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-36 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="mt-5 grid grid-cols-5 sm:grid-cols-8 xl:grid-cols-1 gap-3">
+            {[...Array(8)].map((_, index) => (
+              <div key={index} className="h-11 xl:h-12 rounded-xl bg-gray-200 dark:bg-gray-700" />
+            ))}
+          </div>
+        </aside>
+
+        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8 space-y-6">
+          <div className="flex gap-2">
+            {[...Array(3)].map((_, index) => (
+              <div key={index} className="h-8 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
+            ))}
+          </div>
+          <div className="space-y-3">
+            <div className="h-10 w-3/4 rounded-2xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-full rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-5 w-5/6 rounded-full bg-gray-200 dark:bg-gray-700" />
+          </div>
+          <div className="space-y-4">
+            {[...Array(4)].map((_, index) => (
+              <div key={index} className="h-20 rounded-xl border border-gray-100 dark:border-gray-700 bg-gray-100 dark:bg-gray-700/60" />
+            ))}
+          </div>
+          <div className="flex flex-col md:flex-row gap-3 md:items-center md:justify-between">
+            <div className="h-12 w-32 rounded-xl bg-gray-200 dark:bg-gray-700" />
+            <div className="h-4 w-64 rounded-full bg-gray-200 dark:bg-gray-700" />
+            <div className="h-12 w-36 rounded-xl bg-gray-200 dark:bg-gray-700" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const Interview = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -414,15 +479,7 @@ const Interview = () => {
   }
 
   if (loading) {
-    return (
-      <div className="flex-grow flex flex-col items-center justify-center py-32 px-4 text-center">
-        <div className="w-16 h-16 border-4 border-blue-100 dark:border-blue-900 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin shadow-sm"></div>
-        <h2 className="mt-6 text-2xl font-bold text-gray-800 dark:text-white">Preparing your interview</h2>
-        <p className="mt-2 text-gray-500 dark:text-gray-400 max-w-md">
-          Pulling the latest questions and setting up your timed round.
-        </p>
-      </div>
-    );
+    return <InterviewLoadingSkeleton />;
   }
 
   if (fetchError) {
