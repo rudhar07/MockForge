@@ -164,6 +164,13 @@ const Interview = () => {
   const answeredCount = questions.filter((question) => answers[question._id]).length;
   const progress = questions.length ? ((answeredCount / questions.length) * 100).toFixed(0) : 0;
   const currentQ = questions[currentIndex];
+  const hasActiveInterview =
+    Boolean(topic) &&
+    questions.length > 0 &&
+    !loading &&
+    !showResult &&
+    !fetchError &&
+    !submitting;
 
   const submitInterview = useCallback(async (answerMap = answers, options = {}) => {
     if (!topic || submitting) {
@@ -406,6 +413,61 @@ const Interview = () => {
 
     localStorage.setItem(storageKey, JSON.stringify(snapshot));
   }, [answers, currentIndex, flaggedQuestions, reviewMode, showResult, storageKey, timeLeft, topic]);
+
+  useEffect(() => {
+    if (!hasActiveInterview) {
+      return undefined;
+    }
+
+    const handleBeforeUnload = (event) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasActiveInterview]);
+
+  useEffect(() => {
+    if (!hasActiveInterview) {
+      return undefined;
+    }
+
+    const handleDocumentClick = (event) => {
+      const anchor = event.target.closest('a[href]');
+      if (!anchor) {
+        return;
+      }
+
+      const href = anchor.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) {
+        return;
+      }
+
+      const destination = new URL(anchor.href, window.location.origin);
+      const currentUrl = new URL(window.location.href);
+      const isSamePath =
+        destination.pathname === currentUrl.pathname &&
+        destination.search === currentUrl.search &&
+        destination.hash === currentUrl.hash;
+
+      if (isSamePath || destination.origin !== currentUrl.origin) {
+        return;
+      }
+
+      const shouldLeave = window.confirm(
+        'Your interview is still in progress. If you leave this page, you can resume later from autosave. Do you want to continue?'
+      );
+
+      if (!shouldLeave) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick, true);
+    return () => document.removeEventListener('click', handleDocumentClick, true);
+  }, [hasActiveInterview]);
 
   if (!topic) {
     return (
@@ -872,6 +934,12 @@ const Interview = () => {
                 <ChevronRight className="h-4 w-4 ml-2" />
               </button>
             </div>
+
+            {hasActiveInterview && (
+              <p className="mt-5 text-center text-xs font-medium text-amber-600 dark:text-amber-400">
+                Leaving this page will show a confirmation. Your progress is also autosaved locally.
+              </p>
+            )}
           </div>
         </div>
       </div>
