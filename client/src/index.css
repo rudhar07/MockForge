@@ -1,3 +1,113 @@
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --font-display: "Segoe UI", "Trebuchet MS", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --brand-bg: #f3f7ff;
+  --brand-surface: rgba(255, 255, 255, 0.82);
+  --brand-surface-strong: rgba(255, 255, 255, 0.94);
+  --brand-line: rgba(37, 99, 235, 0.12);
+  --brand-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+  --brand-glow: radial-gradient(circle at top, rgba(59, 130, 246, 0.14), transparent 42%);
+  --brand-grid: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+}
+
+.dark {
+  --brand-bg: #020817;
+  --brand-surface: rgba(15, 23, 42, 0.78);
+  --brand-surface-strong: rgba(15, 23, 42, 0.94);
+  --brand-line: rgba(148, 163, 184, 0.14);
+  --brand-shadow: 0 20px 60px rgba(2, 6, 23, 0.45);
+  --brand-glow: radial-gradient(circle at top, rgba(37, 99, 235, 0.16), transparent 42%);
+  --brand-grid: linear-gradient(rgba(51, 65, 85, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 65, 85, 0.18) 1px, transparent 1px);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-body);
+    background: var(--brand-bg);
+  }
+
+  body {
+    min-height: 100vh;
+    background:
+      var(--brand-glow),
+      var(--brand-grid);
+    background-size: auto, 34px 34px;
+    color: rgb(15 23 42);
+  }
+
+  .dark body {
+    color: rgb(226 232 240);
+  }
+
+  h1,
+  h2,
+  h3,
+  .brand-heading {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+  }
+}
+
+@layer components {
+  .app-shell {
+    @apply min-h-screen flex flex-col transition-colors duration-300;
+    background-color: var(--brand-bg);
+  }
+
+  .brand-shell {
+    background:
+      linear-gradient(180deg, var(--brand-surface-strong), var(--brand-surface)),
+      var(--brand-bg);
+    border: 1px solid var(--brand-line);
+    box-shadow: var(--brand-shadow);
+  }
+
+  .brand-navbar {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.7)),
+      var(--brand-bg);
+    border-bottom: 1px solid var(--brand-line);
+    box-shadow: 0 10px 32px rgba(15, 23, 42, 0.06);
+    backdrop-filter: blur(20px);
+  }
+
+  .dark .brand-navbar {
+    background:
+      linear-gradient(180deg, rgba(2, 6, 23, 0.88), rgba(15, 23, 42, 0.74)),
+      var(--brand-bg);
+    box-shadow: 0 12px 34px rgba(2, 6, 23, 0.32);
+  }
+
+  .brand-wordmark {
+    @apply text-[1.7rem] font-black leading-none text-slate-950 dark:text-white;
+    font-family: var(--font-display);
+    letter-spacing: -0.05em;
+  }
+
+  .brand-kicker {
+    @apply text-[0.68rem] font-semibold uppercase tracking-[0.32em] text-blue-600 dark:text-blue-300;
+  }
+
+  .brand-chip {
+    @apply rounded-2xl border px-4 py-2.5 font-semibold transition-all duration-300;
+    border-color: var(--brand-line);
+    background: var(--brand-surface);
+  }
+
+  .brand-primary-action {
+    @apply inline-flex items-center rounded-2xl px-5 py-2.5 font-semibold text-white transition-all duration-300;
+    background: linear-gradient(135deg, rgb(15 23 42), rgb(37 99 235));
+    box-shadow: 0 14px 28px rgba(37, 99, 235, 0.18);
+  }
+
+  .brand-primary-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 32px rgba(37, 99, 235, 0.24);
+  }
+}
