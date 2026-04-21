@@ -7,7 +7,7 @@
 
 # ⚒️ MockForge — Interview Simulator
 
-> A full-stack MERN application that simulates timed technical interviews with curated DSA questions, real-time scoring, and a global leaderboard.
+> A full-stack MERN application that simulates timed technical interviews with curated DSA questions, real-time scoring, a global leaderboard, and an AI-powered coach review.
 
 ![MockForge Landing Page](./screenshots/landing-hero.png)
 
