@@ -1,15 +1,42 @@
 import Question from '../models/Questions.js';
 
-const sanitizeQuestion = (question) => ({
-  _id: question._id,
-  title: question.title,
-  description: question.description,
-  type: question.type,
-  topic: question.topic,
-  difficulty: question.difficulty,
-  options: question.options,
-  marks: question.marks,
-});
+// Strip answer keys before sending questions to interview candidates.
+// MCQs: drop `correctAnswer` and `explanation`.
+// Code: drop hidden test cases entirely; keep only sample cases (input + expected)
+//       so the candidate can see worked examples like LeetCode does.
+const sanitizeQuestion = (question) => {
+  const base = {
+    _id: question._id,
+    title: question.title,
+    description: question.description,
+    type: question.type,
+    topic: question.topic,
+    difficulty: question.difficulty,
+    marks: question.marks,
+  };
+
+  if (question.type === 'mcq') {
+    return { ...base, options: question.options };
+  }
+
+  if (question.type === 'code') {
+    const sampleCases = (question.testCases || [])
+      .filter((tc) => tc.isSample)
+      .map((tc) => ({ input: tc.input, expectedOutput: tc.expectedOutput }));
+
+    return {
+      ...base,
+      language: question.language,
+      starterCode: question.starterCode,
+      sampleTestCases: sampleCases,
+      // We expose the *count* of hidden cases so the UI can say
+      // "Passed 3/10 hidden tests" without leaking the cases themselves.
+      hiddenTestCount: (question.testCases || []).filter((tc) => !tc.isSample).length,
+    };
+  }
+
+  return base;
+};
 
 // @desc    Get all questions
 // @route   GET /api/questions
@@ -58,16 +85,19 @@ export const getQuestionById = async (req, res) => {
 // @access  Private/Admin (Only Admins can do this)
 export const createQuestion = async (req, res) => {
   try {
-    const { 
-      title, 
-      description, 
-      type, 
-      topic, 
-      difficulty, 
-      options, 
-      correctAnswer, 
-      explanation, 
-      marks 
+    const {
+      title,
+      description,
+      type,
+      topic,
+      difficulty,
+      options,
+      correctAnswer,
+      explanation,
+      marks,
+      language,
+      starterCode,
+      testCases,
     } = req.body;
 
     const question = new Question({
@@ -80,7 +110,10 @@ export const createQuestion = async (req, res) => {
       correctAnswer,
       explanation,
       marks,
-      createdBy: req.user._id, // Automatically links it to the Admin making the request!
+      language,
+      starterCode,
+      testCases,
+      createdBy: req.user._id,
     });
 
     const createdQuestion = await question.save();
@@ -105,6 +138,9 @@ export const updateQuestion = async (req, res) => {
       correctAnswer,
       explanation,
       marks,
+      language,
+      starterCode,
+      testCases,
     } = req.body;
 
     const question = await Question.findById(req.params.id);
@@ -122,6 +158,9 @@ export const updateQuestion = async (req, res) => {
     question.correctAnswer = correctAnswer;
     question.explanation = explanation;
     question.marks = marks;
+    question.language = language;
+    question.starterCode = starterCode;
+    question.testCases = testCases;
 
     const updatedQuestion = await question.save();
     res.json(updatedQuestion);
