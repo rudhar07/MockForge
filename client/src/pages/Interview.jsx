@@ -150,7 +150,9 @@ const Interview = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const { data } = await API.get(`/questions/topic/${topic}`, config);
-        setQuestions(data);
+        // Code questions are filtered out until Phase 6 wires up Monaco rendering.
+        // Without this guard, the MCQ-only UI below crashes on `question.options.map`.
+        setQuestions(data.filter((q) => q.type !== 'code'));
       } catch (error) {
         setFetchError(error.response?.data?.message || 'Unable to load this interview right now.');
       } finally {
@@ -346,7 +348,8 @@ const Interview = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const { data } = await API.get(`/questions/topic/${topic}`, config);
-      setQuestions(data);
+      // Code questions are filtered out until Phase 6 wires up Monaco rendering.
+      setQuestions(data.filter((q) => q.type !== 'code'));
     } catch (error) {
       setFetchError(error.response?.data?.message || 'Unable to load this interview right now.');
     } finally {
