@@ -95,6 +95,11 @@ const Interview = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [aiReview, setAiReview] = useState(null);
+  // Per-question results — populated by backend after submission. Each item
+  // has { questionId, title, type, isCorrect, earnedMarks, ... } plus type-
+  // specific extras: MCQs carry selectedAnswer/correctAnswer; code questions
+  // carry testResults, testsPassed, testsTotal, submittedCode, language.
+  const [reviewItems, setReviewItems] = useState([]);
   const [showResult, setShowResult] = useState(false);
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -153,6 +158,7 @@ const Interview = () => {
       setTimeLeft(600);
       setAnswers({});
       setFlaggedQuestions({});
+      setReviewItems([]);
       answersRef.current = {};
 
       try {
@@ -219,6 +225,7 @@ const Interview = () => {
 
       setScore(data.score);
       setAiReview(data.aiReview ?? null);
+      setReviewItems(Array.isArray(data.reviewItems) ? data.reviewItems : []);
       setShowResult(true);
       setReviewMode(false);
       if (storageKey) {
@@ -370,6 +377,7 @@ const Interview = () => {
     setCurrentIndex(0);
     setScore(0);
     setAiReview(null);
+    setReviewItems([]);
     setShowResult(false);
     setLoading(false);
     setSubmitting(false);
@@ -401,6 +409,7 @@ const Interview = () => {
     setTimeLeft(600);
     setAnswers({});
     setFlaggedQuestions({});
+    setReviewItems([]);
     answersRef.current = {};
 
     try {
@@ -665,7 +674,7 @@ const Interview = () => {
 
     return (
       <div className="flex-grow py-16 px-4 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 text-center max-w-2xl w-full">
+        <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 text-center max-w-4xl w-full">
           <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
             <CircleCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
           </div>
@@ -726,6 +735,156 @@ const Interview = () => {
                   {aiReview.message || 'AI review is currently unavailable for this attempt.'}
                 </p>
               )}
+            </div>
+          )}
+
+          {reviewItems.length > 0 && (
+            <div className="mb-8 text-left space-y-4">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white">Question-by-Question Breakdown</h3>
+
+              {reviewItems.map((item) => {
+                const isCorrect = !!item.isCorrect;
+                const isCode = item.type === 'code';
+
+                return (
+                  <div
+                    key={item.questionId}
+                    className={`rounded-2xl border p-5 ${
+                      isCorrect
+                        ? 'border-emerald-200 dark:border-emerald-900/40 bg-emerald-50/50 dark:bg-emerald-900/10'
+                        : 'border-rose-200 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-900/10'
+                    }`}
+                  >
+                    {/* Header: badges + marks */}
+                    <div className="flex flex-wrap items-center gap-2 mb-3">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
+                        isCode
+                          ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
+                          : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'
+                      }`}>
+                        {isCode ? <Code className="h-3 w-3" /> : null}
+                        {isCode ? item.language || 'code' : 'mcq'}
+                      </span>
+
+                      {isCorrect ? (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 inline-flex items-center gap-1">
+                          <CircleCheck className="h-3 w-3" />
+                          Correct
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 inline-flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          {isCode && item.testsTotal
+                            ? `${item.testsPassed}/${item.testsTotal} tests passed`
+                            : 'Incorrect'}
+                        </span>
+                      )}
+
+                      {typeof item.earnedMarks === 'number' && (
+                        <span className="ml-auto text-sm font-semibold text-gray-700 dark:text-gray-300">
+                          {item.earnedMarks} marks earned
+                        </span>
+                      )}
+                    </div>
+
+                    <p className="text-base font-bold text-gray-900 dark:text-white mb-3">{item.title}</p>
+
+                    {/* MCQ body */}
+                    {!isCode && (
+                      <div className="space-y-2 text-sm">
+                        <div>
+                          <span className="text-gray-500 dark:text-gray-400">Your answer: </span>
+                          <span className={isCorrect ? 'text-emerald-700 dark:text-emerald-300 font-semibold' : 'text-rose-700 dark:text-rose-300 font-semibold'}>
+                            {item.selectedAnswer || '(no answer)'}
+                          </span>
+                        </div>
+                        {!isCorrect && (
+                          <div>
+                            <span className="text-gray-500 dark:text-gray-400">Correct answer: </span>
+                            <span className="text-emerald-700 dark:text-emerald-300 font-semibold">{item.correctAnswer}</span>
+                          </div>
+                        )}
+                        {item.explanation && (
+                          <div className="mt-2 rounded-lg bg-white/60 dark:bg-gray-800/60 p-3 text-gray-700 dark:text-gray-200">
+                            <span className="text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">Explanation</span>
+                            <p className="mt-1 whitespace-pre-wrap">{item.explanation}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Code body */}
+                    {isCode && (
+                      <div className="space-y-3">
+                        {/* Per-test-case results */}
+                        {Array.isArray(item.testResults) && item.testResults.length > 0 && (
+                          <div className="space-y-1.5">
+                            {item.testResults.map((tr, idx) => (
+                              <div
+                                key={idx}
+                                className={`flex items-start gap-3 rounded-lg px-3 py-2 text-sm ${
+                                  tr.passed
+                                    ? 'bg-emerald-100/60 dark:bg-emerald-900/20 text-emerald-900 dark:text-emerald-100'
+                                    : 'bg-rose-100/60 dark:bg-rose-900/20 text-rose-900 dark:text-rose-100'
+                                }`}
+                              >
+                                {tr.passed ? (
+                                  <CircleCheck className="h-4 w-4 mt-0.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                                ) : (
+                                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0 text-rose-600 dark:text-rose-400" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-semibold">
+                                    Test {idx + 1}
+                                    <span className="ml-2 text-xs font-normal opacity-75">
+                                      {tr.isSample ? 'sample' : 'hidden'}
+                                      {tr.status !== 'success' && ` · ${tr.status}`}
+                                    </span>
+                                  </div>
+                                  {!tr.passed && (
+                                    <div className="mt-1 grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs font-mono">
+                                      <div>
+                                        <div className="opacity-60">input</div>
+                                        <pre className="whitespace-pre-wrap">{tr.input || '(empty)'}</pre>
+                                      </div>
+                                      <div>
+                                        <div className="opacity-60">expected</div>
+                                        <pre className="whitespace-pre-wrap">{tr.expectedOutput}</pre>
+                                      </div>
+                                      <div>
+                                        <div className="opacity-60">got</div>
+                                        <pre className="whitespace-pre-wrap">{tr.actualOutput || tr.errorMessage || '(no output)'}</pre>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Submitted code (read-only Monaco viewer) */}
+                        {item.submittedCode && (
+                          <details className="rounded-xl bg-white/60 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700">
+                            <summary className="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+                              View submitted code
+                            </summary>
+                            <div className="p-3 pt-0">
+                              <CodeEditor
+                                language={item.language || 'python'}
+                                value={item.submittedCode}
+                                onChange={() => {}}
+                                readOnly
+                                height="240px"
+                              />
+                            </div>
+                          </details>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
 
@@ -1141,4 +1300,5 @@ const Interview = () => {
     </div>
   );
 };
+
 export default Interview;
