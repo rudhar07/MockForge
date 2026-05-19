@@ -254,6 +254,7 @@ export const saveSubmission = async (req, res) => {
       score,
       totalPossible,
       aiReview,
+      reviewItems,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -291,6 +292,7 @@ export const regenerateSubmissionReview = async (req, res) => {
       score,
       totalPossible,
       aiReview,
+      reviewItems,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
