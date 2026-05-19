@@ -15,7 +15,11 @@ import {
   CircleCheck,
   AlertCircle,
   FileCheck,
+  Play,
+  Loader2,
+  Terminal,
 } from 'lucide-react';
+import CodeEditor from '../components/CodeEditor';
 
 const InterviewLoadingSkeleton = () => (
   <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8 animate-pulse">
@@ -102,6 +106,10 @@ const Interview = () => {
   const [submitError, setSubmitError] = useState('');
   const [regeneratingReview, setRegeneratingReview] = useState(false);
   const [resumeCandidate, setResumeCandidate] = useState(null);
+  // Per-question state for the "Run Code" feature. Keyed by question _id so
+  // navigating away and back preserves the last run output without re-running.
+  const [runOutput, setRunOutput] = useState({});
+  const [running, setRunning] = useState({});
   const answersRef = useRef({});
   const submitInterviewRef = useRef(null);
 
@@ -150,9 +158,7 @@ const Interview = () => {
       try {
         const config = { headers: { Authorization: `Bearer ${user.token}` } };
         const { data } = await API.get(`/questions/topic/${topic}`, config);
-        // Code questions are filtered out until Phase 6 wires up Monaco rendering.
-        // Without this guard, the MCQ-only UI below crashes on `question.options.map`.
-        setQuestions(data.filter((q) => q.type !== 'code'));
+        setQuestions(data);
       } catch (error) {
         setFetchError(error.response?.data?.message || 'Unable to load this interview right now.');
       } finally {
@@ -189,10 +195,16 @@ const Interview = () => {
 
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
-      const responses = Object.entries(answerMap).map(([questionId, selectedOption]) => ({
-        questionId,
-        selectedOption,
-      }));
+      // Shape each response per the question's type. Code Qs send { code };
+      // MCQs send { selectedOption } as before. This is what makes the
+      // Phase 3 backend scoring kick in for code submissions.
+      const questionTypeById = Object.fromEntries(questions.map((q) => [q._id, q.type]));
+      const responses = Object.entries(answerMap).map(([questionId, answer]) => {
+        if (questionTypeById[questionId] === 'code') {
+          return { questionId, code: answer };
+        }
+        return { questionId, selectedOption: answer };
+      });
       const flaggedQuestionIds = Object.entries(flaggedQuestions)
         .filter(([, isFlagged]) => Boolean(isFlagged))
         .map(([questionId]) => questionId);
@@ -221,7 +233,7 @@ const Interview = () => {
         setSubmitting(false);
       }
     }
-  }, [answers, flaggedQuestions, storageKey, submitting, topic, user.token]);
+  }, [answers, flaggedQuestions, questions, storageKey, submitting, topic, user.token]);
 
   useEffect(() => {
     submitInterviewRef.current = submitInterview;
@@ -256,6 +268,52 @@ const Interview = () => {
       [currentQ._id]: option,
     }));
   }, [currentQ]);
+
+  // Pre-populate the editor with starter code the first time a candidate
+  // visits a code question. We use the functional setAnswers form so we
+  // don't have to depend on `answers` (which would cause this effect to
+  // refire on every keystroke).
+  useEffect(() => {
+    if (!currentQ || currentQ.type !== 'code') return;
+    setAnswers((prev) => {
+      if (prev[currentQ._id] !== undefined) return prev;
+      return { ...prev, [currentQ._id]: currentQ.starterCode || '' };
+    });
+  }, [currentQ]);
+
+  // POST the current code to /api/execute/run with the first sample test
+  // case's input as stdin. Mirrors LeetCode's "Run" (preview against examples)
+  // distinct from "Submit" (run all tests, including hidden ones).
+  const runCurrentCode = useCallback(async () => {
+    if (!currentQ || currentQ.type !== 'code') return;
+
+    const code = answers[currentQ._id] ?? '';
+    const stdin = currentQ.sampleTestCases?.[0]?.input ?? '';
+
+    setRunning((prev) => ({ ...prev, [currentQ._id]: true }));
+
+    try {
+      const config = { headers: { Authorization: `Bearer ${user.token}` } };
+      const { data } = await API.post(
+        '/execute/run',
+        { language: currentQ.language, code, stdin },
+        config
+      );
+      setRunOutput((prev) => ({ ...prev, [currentQ._id]: data }));
+    } catch (error) {
+      setRunOutput((prev) => ({
+        ...prev,
+        [currentQ._id]: {
+          status: 'error',
+          stdout: '',
+          stderr: '',
+          message: error.response?.data?.message || 'Could not reach the execution service.',
+        },
+      }));
+    } finally {
+      setRunning((prev) => ({ ...prev, [currentQ._id]: false }));
+    }
+  }, [currentQ, answers, user.token]);
 
   const handleNext = useCallback(() => {
     if (currentIndex + 1 < questions.length) {
@@ -348,8 +406,7 @@ const Interview = () => {
     try {
       const config = { headers: { Authorization: `Bearer ${user.token}` } };
       const { data } = await API.get(`/questions/topic/${topic}`, config);
-      // Code questions are filtered out until Phase 6 wires up Monaco rendering.
-      setQuestions(data.filter((q) => q.type !== 'code'));
+      setQuestions(data);
     } catch (error) {
       setFetchError(error.response?.data?.message || 'Unable to load this interview right now.');
     } finally {
@@ -368,15 +425,28 @@ const Interview = () => {
       const isTypingField =
         tagName === 'input' || tagName === 'textarea' || target?.isContentEditable;
 
-      if (isTypingField) {
+      // Belt-and-braces: also skip if the event originated anywhere inside a
+      // Monaco editor. The `isTypingField` check above usually catches Monaco's
+      // hidden textarea, but Monaco's internal DOM (overlays, suggest widgets,
+      // etc.) can be the actual `event.target` in edge cases and would slip
+      // through. `.closest('.monaco-editor')` walks up the ancestor chain
+      // looking for Monaco's root container — caught no matter what.
+      const isInsideMonaco = typeof target?.closest === 'function'
+        && !!target.closest('.monaco-editor');
+
+      if (isTypingField || isInsideMonaco) {
         return;
       }
 
-      const optionIndex = Number(event.key) - 1;
-      if (optionIndex >= 0 && optionIndex < currentQ.options.length) {
-        event.preventDefault();
-        handleSelectAnswer(currentQ.options[optionIndex]);
-        return;
+      // 1-4 keys are MCQ-only. Code questions don't have `options`; reading
+      // `.length` on undefined would crash the whole handler.
+      if (currentQ.type === 'mcq') {
+        const optionIndex = Number(event.key) - 1;
+        if (optionIndex >= 0 && optionIndex < (currentQ.options?.length ?? 0)) {
+          event.preventDefault();
+          handleSelectAnswer(currentQ.options[optionIndex]);
+          return;
+        }
       }
 
       if (event.key === 'ArrowLeft') {
@@ -385,7 +455,15 @@ const Interview = () => {
         return;
       }
 
-      if (event.key === 'ArrowRight' || event.key === 'Enter') {
+      // Enter advances only for MCQs (a deliberate shortcut after selecting).
+      // For code questions, Enter has no business advancing — candidates
+      // press it constantly inside the editor. ArrowRight still works for
+      // intentional navigation from outside the editor.
+      const advanceKey =
+        event.key === 'ArrowRight' ||
+        (event.key === 'Enter' && currentQ.type === 'mcq');
+
+      if (advanceKey) {
         if (!answers[currentQ._id]) {
           return;
         }
@@ -884,27 +962,139 @@ const Interview = () => {
             </div>
 
             <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg">{currentQ.description}</p>
+            <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg whitespace-pre-wrap">{currentQ.description}</p>
 
-            <div className="space-y-4">
-              {currentQ.options.map((option, idx) => {
-                const isSelected = answers[currentQ._id] === option;
+            {/* ---- MCQ rendering (existing behavior) ---- */}
+            {currentQ.type === 'mcq' && (
+              <div className="space-y-4">
+                {currentQ.options.map((option, idx) => {
+                  const isSelected = answers[currentQ._id] === option;
 
-                return (
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleSelectAnswer(option)}
+                      className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
+                        isSelected
+                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
+                          : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ---- Code question rendering ---- */}
+            {currentQ.type === 'code' && (
+              <div className="space-y-5">
+                {/* Language + hidden test count metadata */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold inline-flex items-center gap-1">
+                    <Code className="h-3 w-3" />
+                    {currentQ.language || 'code'}
+                  </span>
+                  {typeof currentQ.hiddenTestCount === 'number' && currentQ.hiddenTestCount > 0 && (
+                    <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300 text-xs font-semibold">
+                      {currentQ.hiddenTestCount} hidden test{currentQ.hiddenTestCount === 1 ? '' : 's'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Sample test cases — LeetCode-style worked examples */}
+                {currentQ.sampleTestCases && currentQ.sampleTestCases.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">Examples</h3>
+                    {currentQ.sampleTestCases.map((tc, idx) => (
+                      <div key={idx} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-slate-50 dark:bg-gray-900/30 space-y-2">
+                        <div>
+                          <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Input</div>
+                          <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.input || '(no input)'}</pre>
+                        </div>
+                        <div>
+                          <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Expected output</div>
+                          <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.expectedOutput}</pre>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Monaco editor */}
+                <CodeEditor
+                  language={currentQ.language}
+                  value={answers[currentQ._id] ?? ''}
+                  onChange={(code) =>
+                    setAnswers((prev) => ({ ...prev, [currentQ._id]: code }))
+                  }
+                  height="360px"
+                />
+
+                {/* Run Code button + output panel */}
+                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
                   <button
-                    key={idx}
-                    onClick={() => handleSelectAnswer(option)}
-                    className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
-                      isSelected
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
-                        : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
-                    }`}
+                    type="button"
+                    onClick={runCurrentCode}
+                    disabled={running[currentQ._id]}
+                    className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold disabled:opacity-60"
                   >
-                    {option}
+                    {running[currentQ._id] ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Running…
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4 mr-2" />
+                        Run Code
+                      </>
+                    )}
                   </button>
-                );
-              })}
-            </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Runs against the first sample. Full scoring happens at submit.
+                  </p>
+                </div>
+
+                {runOutput[currentQ._id] && (
+                  <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-900 dark:bg-black p-4 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                      <Terminal className="h-3.5 w-3.5 text-slate-300" />
+                      <span className={
+                        runOutput[currentQ._id].status === 'success'
+                          ? 'text-emerald-400'
+                          : runOutput[currentQ._id].status === 'timeout'
+                            ? 'text-amber-400'
+                            : 'text-rose-400'
+                      }>
+                        {runOutput[currentQ._id].status}
+                      </span>
+                      {typeof runOutput[currentQ._id].runtimeMs === 'number' && (
+                        <span className="text-slate-400 font-normal">
+                          · {runOutput[currentQ._id].runtimeMs}ms
+                        </span>
+                      )}
+                    </div>
+                    {runOutput[currentQ._id].stdout && (
+                      <div>
+                        <div className="text-xs text-slate-400 mb-1">stdout</div>
+                        <pre className="text-sm font-mono text-emerald-200 whitespace-pre-wrap">{runOutput[currentQ._id].stdout}</pre>
+                      </div>
+                    )}
+                    {runOutput[currentQ._id].stderr && (
+                      <div>
+                        <div className="text-xs text-slate-400 mb-1">stderr</div>
+                        <pre className="text-sm font-mono text-rose-300 whitespace-pre-wrap">{runOutput[currentQ._id].stderr}</pre>
+                      </div>
+                    )}
+                    {runOutput[currentQ._id].message && (
+                      <div className="text-xs text-slate-300">{runOutput[currentQ._id].message}</div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {submitError && (
               <div className="mt-6 rounded-xl border border-red-200 dark:border-red-900/40 bg-red-50 dark:bg-red-900/10 px-4 py-3 text-red-700 dark:text-red-300">
@@ -923,9 +1113,11 @@ const Interview = () => {
               </button>
 
               <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
-                {answers[currentQ._id]
-                  ? 'Answer selected and ready. Use Enter or Right Arrow to continue.'
-                  : 'Press 1-4 to select an option, then Enter or Right Arrow to continue.'}
+                {currentQ.type === 'code'
+                  ? 'Edit code freely. Run preview against the sample; full grading happens at submit.'
+                  : answers[currentQ._id]
+                    ? 'Answer selected and ready. Use Enter or Right Arrow to continue.'
+                    : 'Press 1-4 to select an option, then Enter or Right Arrow to continue.'}
               </div>
 
               <button
