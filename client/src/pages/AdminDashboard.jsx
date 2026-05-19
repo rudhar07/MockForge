@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect, useCallback } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import API from '../api/axios';
 import toast from 'react-hot-toast';
-import { ShieldCheck, PencilLine, Trash2, Search, RefreshCw, PlusCircle } from 'lucide-react';
+import { ShieldCheck, PencilLine, Trash2, Search, RefreshCw, PlusCircle, Code2, ListChecks, X } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 
 const QuestionBankSkeleton = () => (
@@ -37,15 +37,24 @@ const AdminDashboard = () => {
   const initialFormState = {
     title: '',
     description: '',
+    type: 'mcq',
     topic: 'arrays',
     difficulty: 'easy',
     correctAnswer: '',
     explanation: '',
     marks: 10,
+    // Code-specific fields. Empty/default for MCQs so the payload stays clean.
+    language: 'python',
+    starterCode: '',
   };
+
+  // First case defaults to a sample so candidates always see at least one
+  // worked example. Admin can toggle it off if they really want all hidden.
+  const initialTestCases = [{ input: '', expectedOutput: '', isSample: true }];
 
   const [formData, setFormData] = useState(initialFormState);
   const [options, setOptions] = useState(['', '', '', '']);
+  const [testCases, setTestCases] = useState(initialTestCases);
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -60,9 +69,34 @@ const AdminDashboard = () => {
     setOptions(newOptions);
   };
 
+  // Test-case editor helpers. We rebuild the array on every change rather than
+  // mutating in place — React only re-renders when reference identity changes.
+  const updateTestCase = (idx, patch) => {
+    setTestCases((prev) =>
+      prev.map((tc, i) => (i === idx ? { ...tc, ...patch } : tc))
+    );
+  };
+
+  const addTestCase = () => {
+    setTestCases((prev) => [
+      ...prev,
+      { input: '', expectedOutput: '', isSample: false },
+    ]);
+  };
+
+  const removeTestCase = (idx) => {
+    setTestCases((prev) => {
+      // Keep at least one row visible — clearing the last row would orphan
+      // the editor with no "add" affordance in view.
+      if (prev.length <= 1) return prev;
+      return prev.filter((_, i) => i !== idx);
+    });
+  };
+
   const resetForm = () => {
     setFormData(initialFormState);
     setOptions(['', '', '', '']);
+    setTestCases(initialTestCases);
     setEditingId(null);
   };
 
@@ -100,13 +134,25 @@ const AdminDashboard = () => {
       setFormData({
         title: data.title,
         description: data.description,
+        type: data.type || 'mcq',
         topic: data.topic,
         difficulty: data.difficulty,
-        correctAnswer: data.correctAnswer,
-        explanation: data.explanation,
+        correctAnswer: data.correctAnswer || '',
+        explanation: data.explanation || '',
         marks: data.marks,
+        language: data.language || 'python',
+        starterCode: data.starterCode || '',
       });
-      setOptions(data.options);
+      setOptions(data.options && data.options.length === 4 ? data.options : ['', '', '', '']);
+      setTestCases(
+        data.testCases && data.testCases.length > 0
+          ? data.testCases.map((tc) => ({
+              input: tc.input ?? '',
+              expectedOutput: tc.expectedOutput ?? '',
+              isSample: !!tc.isSample,
+            }))
+          : initialTestCases
+      );
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load question details');
@@ -132,14 +178,59 @@ const AdminDashboard = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    if (!options.includes(formData.correctAnswer)) {
-      toast.error("Correct Answer MUST exactly match one of the 4 options!");
+
+    // Type-specific validation + payload shaping. We strip irrelevant fields
+    // per type so the backend never has to deal with stale state from a
+    // type-toggle (e.g., MCQ leftovers when saving a code question).
+    let payload;
+
+    if (formData.type === 'mcq') {
+      if (!options.every((opt) => opt.trim().length > 0)) {
+        toast.error('All 4 options must be filled in.');
+        return;
+      }
+      if (!options.includes(formData.correctAnswer)) {
+        toast.error('Correct Answer MUST exactly match one of the 4 options!');
+        return;
+      }
+      payload = {
+        ...formData,
+        options,
+        testCases: [],
+        starterCode: '',
+      };
+    } else if (formData.type === 'code') {
+      // Code questions need at least one fully-specified test case.
+      const cleanCases = testCases
+        .map((tc) => ({
+          input: tc.input ?? '',
+          expectedOutput: (tc.expectedOutput ?? '').trim(),
+          isSample: !!tc.isSample,
+        }))
+        .filter((tc) => tc.expectedOutput.length > 0);
+
+      if (cleanCases.length === 0) {
+        toast.error('Add at least one test case with an expected output.');
+        return;
+      }
+      if (!cleanCases.some((tc) => tc.isSample)) {
+        toast.error('Mark at least one test case as a Sample so candidates see a worked example.');
+        return;
+      }
+
+      payload = {
+        ...formData,
+        options: [],
+        correctAnswer: '', // Schema treats this as not-required for type=code.
+        testCases: cleanCases,
+      };
+    } else {
+      toast.error('Unsupported question type.');
       return;
     }
 
     try {
       setIsSaving(true);
-      const payload = { ...formData, type: 'mcq', options };
 
       if (editingId) {
         const { data } = await API.put(`/questions/${editingId}`, payload, {
@@ -148,13 +239,13 @@ const AdminDashboard = () => {
         setQuestions((prev) =>
           prev.map((question) => (question._id === editingId ? data : question))
         );
-        toast.success("Question updated successfully!");
+        toast.success('Question updated successfully!');
       } else {
         const { data } = await API.post('/questions', payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setQuestions((prev) => [data, ...prev]);
-        toast.success("Question successfully deployed to Database!");
+        toast.success('Question successfully deployed to Database!');
       }
 
       resetForm();
@@ -231,6 +322,37 @@ const AdminDashboard = () => {
                 <textarea required className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 min-h-28" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
               </div>
 
+              {/* Question Type — controls which subset of fields renders below. */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Question Type</label>
+                <div className="mt-2 grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'mcq' })}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold transition ${
+                      formData.type === 'mcq'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    <ListChecks className="h-4 w-4" />
+                    Multiple Choice
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({ ...formData, type: 'code' })}
+                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold transition ${
+                      formData.type === 'code'
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+                        : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    <Code2 className="h-4 w-4" />
+                    Code
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Topic</label>
@@ -251,23 +373,127 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Multiple Choice Options</label>
-                {options.map((opt, idx) => (
-                  <input key={idx} required type="text" placeholder={`Option ${idx + 1}`} className="w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={opt} onChange={(e) => handleOptionChange(idx, e.target.value)} />
-                ))}
-              </div>
+              {/* ---- MCQ-specific fields ---- */}
+              {formData.type === 'mcq' && (
+                <>
+                  <div className="space-y-3">
+                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Multiple Choice Options</label>
+                    {options.map((opt, idx) => (
+                      <input key={idx} required type="text" placeholder={`Option ${idx + 1}`} className="w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={opt} onChange={(e) => handleOptionChange(idx, e.target.value)} />
+                    ))}
+                  </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-bold text-blue-600 dark:text-blue-400">Correct Answer</label>
-                  <input required type="text" className="mt-1 w-full p-3 border border-blue-300 dark:border-blue-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.correctAnswer} onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })} />
-                </div>
-                <div>
-                  <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Marks</label>
-                  <input required type="number" min="1" className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.marks} onChange={(e) => setFormData({ ...formData, marks: Number(e.target.value) })} />
-                </div>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-blue-600 dark:text-blue-400">Correct Answer</label>
+                      <input required type="text" className="mt-1 w-full p-3 border border-blue-300 dark:border-blue-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500" value={formData.correctAnswer} onChange={(e) => setFormData({ ...formData, correctAnswer: e.target.value })} />
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Marks</label>
+                      <input required type="number" min="1" className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.marks} onChange={(e) => setFormData({ ...formData, marks: Number(e.target.value) })} />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* ---- Code-specific fields ---- */}
+              {formData.type === 'code' && (
+                <>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Language</label>
+                      <select className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.language} onChange={(e) => setFormData({ ...formData, language: e.target.value })}>
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript (Node)</option>
+                        <option value="cpp">C++</option>
+                        <option value="java">Java</option>
+                        <option value="c">C</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Marks</label>
+                      <input required type="number" min="1" className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white" value={formData.marks} onChange={(e) => setFormData({ ...formData, marks: Number(e.target.value) })} />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Starter Code (optional)</label>
+                    <textarea
+                      className="mt-1 w-full p-3 border dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 min-h-32 font-mono text-sm"
+                      placeholder={'# e.g.\ndef two_sum(nums, target):\n    pass'}
+                      value={formData.starterCode}
+                      onChange={(e) => setFormData({ ...formData, starterCode: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300">
+                        Test Cases ({testCases.length})
+                      </label>
+                      <button
+                        type="button"
+                        onClick={addTestCase}
+                        className="inline-flex items-center text-sm font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                      >
+                        <PlusCircle className="h-4 w-4 mr-1" />
+                        Add test case
+                      </button>
+                    </div>
+
+                    {testCases.map((tc, idx) => (
+                      <div key={idx} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-3 bg-slate-50 dark:bg-gray-900/30">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                            Test #{idx + 1}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <label className="inline-flex items-center text-xs font-semibold text-gray-600 dark:text-gray-300 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="mr-1.5 h-4 w-4 rounded"
+                                checked={tc.isSample}
+                                onChange={(e) => updateTestCase(idx, { isSample: e.target.checked })}
+                              />
+                              Sample (visible to candidate)
+                            </label>
+                            {testCases.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeTestCase(idx)}
+                                className="text-red-500 hover:text-red-700"
+                                title="Remove this test case"
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-400">Input (stdin)</label>
+                            <textarea
+                              className="mt-1 w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm min-h-20"
+                              placeholder="e.g. 2 3"
+                              value={tc.input}
+                              onChange={(e) => updateTestCase(idx, { input: e.target.value })}
+                            />
+                          </div>
+                          <div>
+                            <label className="text-xs font-bold text-gray-600 dark:text-gray-400">Expected output (stdout)</label>
+                            <textarea
+                              className="mt-1 w-full p-2 border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm min-h-20"
+                              placeholder="e.g. 5"
+                              value={tc.expectedOutput}
+                              onChange={(e) => updateTestCase(idx, { expectedOutput: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
 
               <div>
                 <label className="text-sm font-bold text-gray-700 dark:text-gray-300">Explanation</label>
@@ -347,6 +573,17 @@ const AdminDashboard = () => {
                     <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
                       <div className="space-y-3">
                         <div className="flex flex-wrap gap-2">
+                          {question.type === 'code' ? (
+                            <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold inline-flex items-center gap-1">
+                              <Code2 className="h-3 w-3" />
+                              Code · {question.language || 'n/a'}
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-xs font-semibold inline-flex items-center gap-1">
+                              <ListChecks className="h-3 w-3" />
+                              MCQ
+                            </span>
+                          )}
                           <span className="px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs font-semibold capitalize">
                             {question.topic}
                           </span>
