@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url';
 // Import routes
 import authRoutes from './src/routes/authRoutes.js';
 import questionRoutes from './src/routes/questionRoutes.js';
+import executeRoutes from './src/routes/executeRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -24,6 +25,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/submissions', submissionRoutes);
+app.use('/api/execute', executeRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
