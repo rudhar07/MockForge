@@ -1,5 +1,6 @@
 import Submission from '../models/Submission.js';
 import Question from '../models/Questions.js';
+import { executeCode } from '../services/codeExecutor.js';
 
 const generateAiReview = async ({ topic, score, totalPossible, reviewItems, flaggedQuestionIds = [] }) => {
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -78,43 +79,136 @@ const generateAiReview = async ({ topic, score, totalPossible, reviewItems, flag
   }
 };
 
+// Run a single test case for a code question via the Piston service.
+// Returns a uniform shape regardless of pass/fail/error so the caller
+// can aggregate without branching.
+const runTestCase = async ({ language, code, testCase }) => {
+  const result = await executeCode({
+    language,
+    code,
+    stdin: testCase.input ?? '',
+  });
+
+  const actualOutput = (result.stdout || '').trim();
+  const expectedOutput = (testCase.expectedOutput || '').trim();
+  const passed = result.status === 'success' && actualOutput === expectedOutput;
+
+  return {
+    input: testCase.input ?? '',
+    expectedOutput,
+    actualOutput,
+    isSample: !!testCase.isSample,
+    passed,
+    // 'success' | 'runtime_error' | 'compile_error' | 'timeout' | 'error'
+    status: result.status,
+    errorMessage: result.message || result.stderr || '',
+    runtimeMs: result.runtimeMs ?? 0,
+  };
+};
+
+// Score a code-type question. Runs every test case in parallel and awards
+// partial credit proportional to tests passed. We use the question's pinned
+// language (not whatever the candidate sent) because test cases are tuned
+// to a specific runtime.
+const scoreCodeQuestion = async ({ question, code }) => {
+  const testCases = question.testCases || [];
+  const totalMarks = question.marks ?? 0;
+
+  // No code submitted → 0 marks. We still return a result shape so the
+  // review screen can render "Not attempted".
+  if (!code || typeof code !== 'string' || code.trim().length === 0) {
+    return {
+      isCorrect: false,
+      earnedMarks: 0,
+      testResults: [],
+      testsPassed: 0,
+      testsTotal: testCases.length,
+      submittedCode: '',
+    };
+  }
+
+  const testResults = await Promise.all(
+    testCases.map((tc) =>
+      runTestCase({ language: question.language, code, testCase: tc })
+    )
+  );
+
+  const testsPassed = testResults.filter((r) => r.passed).length;
+  const testsTotal = testResults.length;
+  const ratio = testsTotal > 0 ? testsPassed / testsTotal : 0;
+
+  return {
+    isCorrect: testsTotal > 0 && testsPassed === testsTotal,
+    earnedMarks: Math.round(totalMarks * ratio),
+    testResults,
+    testsPassed,
+    testsTotal,
+    submittedCode: code,
+  };
+};
+
 const buildReviewFromResponses = async ({ topic, responses = [] }) => {
   const questions = await Question.find({ topic }).lean();
 
+  // Map questionId → full response object. Old code only stored selectedOption,
+  // but code answers carry { code, language } so we keep the whole payload.
   const responseMap = new Map();
   for (const response of responses) {
-    if (!response?.questionId) {
-      continue;
-    }
-
-    responseMap.set(response.questionId, response.selectedOption);
+    if (!response?.questionId) continue;
+    responseMap.set(response.questionId, response);
   }
 
-  let score = 0;
   let totalPossible = 0;
-  const reviewItems = [];
-
   for (const question of questions) {
     totalPossible += question.marks ?? 0;
   }
 
-  for (const question of questions) {
-    const selectedOption = responseMap.get(question._id.toString());
-    const isCorrect = selectedOption === question.correctAnswer;
+  // Score all questions in parallel. Code questions trigger Piston calls;
+  // running them in parallel keeps total submission time bounded by the
+  // slowest single question rather than the sum of all of them.
+  const reviewItems = await Promise.all(
+    questions.map(async (question) => {
+      const response = responseMap.get(question._id.toString());
+      const base = {
+        questionId: question._id.toString(),
+        title: question.title,
+        type: question.type,
+        explanation: question.explanation ?? '',
+      };
 
-    if (isCorrect) {
-      score += question.marks ?? 0;
-    }
+      if (question.type === 'code') {
+        const result = await scoreCodeQuestion({ question, code: response?.code });
+        return {
+          ...base,
+          language: question.language,
+          submittedCode: result.submittedCode,
+          testResults: result.testResults,
+          testsPassed: result.testsPassed,
+          testsTotal: result.testsTotal,
+          earnedMarks: result.earnedMarks,
+          isCorrect: result.isCorrect,
+          // These two keep the AI-review prompt compatible — it expects every
+          // item to have selectedAnswer + correctAnswer strings.
+          selectedAnswer: `Submitted code (${result.testsPassed}/${result.testsTotal} tests passed)`,
+          correctAnswer: `All ${result.testsTotal} test cases must pass`,
+        };
+      }
 
-    reviewItems.push({
-      questionId: question._id.toString(),
-      title: question.title,
-      selectedAnswer: selectedOption ?? '',
-      correctAnswer: question.correctAnswer,
-      isCorrect,
-      explanation: question.explanation ?? '',
-    });
-  }
+      // MCQ branch (default for type 'mcq' or 'short').
+      const selectedOption = response?.selectedOption;
+      const isCorrect = selectedOption === question.correctAnswer;
+      return {
+        ...base,
+        selectedAnswer: selectedOption ?? '',
+        correctAnswer: question.correctAnswer,
+        isCorrect,
+        earnedMarks: isCorrect ? (question.marks ?? 0) : 0,
+      };
+    })
+  );
+
+  // Sum earnedMarks uniformly across MCQs and code questions.
+  const score = reviewItems.reduce((sum, item) => sum + (item.earnedMarks ?? 0), 0);
 
   return { score, totalPossible, reviewItems };
 };
