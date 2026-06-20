@@ -91,10 +91,12 @@ const StreakHeatmap = ({ countsByDay }) => {
         {cells.map((c) => (
           <div
             key={c.key}
+            role="img"
+            aria-label={`${fmt(c.date)} — ${c.count} session${c.count === 1 ? '' : 's'}`}
             onMouseEnter={() => setHovered(c)}
             onMouseLeave={() => setHovered(null)}
             title={`${fmt(c.date)} — ${c.count} session${c.count === 1 ? '' : 's'}`}
-            className={`h-3 w-3 rounded-[3px] cursor-pointer transition-transform hover:scale-125 hover:ring-1 hover:ring-blue-400 ${levelClass(c.count)}`}
+            className={`h-3 w-3 rounded-[3px] transition-transform hover:scale-125 hover:ring-1 hover:ring-blue-400 ${levelClass(c.count)}`}
           />
         ))}
       </div>
@@ -119,7 +121,7 @@ const Ring = ({ percentage, tone, label, sub }) => {
   return (
     <div className="surface-soft p-4 flex flex-col items-center text-center">
       <div className="relative h-24 w-24">
-        <svg className="h-24 w-24 -rotate-90" viewBox="0 0 80 80">
+        <svg aria-hidden="true" className="h-24 w-24 -rotate-90" viewBox="0 0 80 80">
           <circle cx="40" cy="40" r={r} fill="none" strokeWidth="8" className="stroke-gray-200 dark:stroke-gray-700" />
           <circle
             cx="40"
@@ -536,7 +538,7 @@ const Dashboard = () => {
                       </div>
                       <span className="stat-figure font-black text-gray-900 dark:text-white">{topic.averagePercentage}%</span>
                     </div>
-                    <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div aria-hidden="true" className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full bg-gradient-to-r from-blue-500 via-cyan-500 to-emerald-500"
                         style={{ width: `${Math.min(topic.averagePercentage, 100)}%`, transition: 'width 1s cubic-bezier(0.16,1,0.3,1)' }}
