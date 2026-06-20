@@ -15,9 +15,9 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="brand-navbar sticky top-0 z-40 transition-colors duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center min-h-[72px] gap-4">
+    <nav className="sticky top-0 z-40 transition-colors duration-300">
+      <div className="max-w-6xl mx-auto px-3 sm:px-5 py-2">
+        <div className="brand-island rounded-full flex justify-between items-center min-h-[56px] gap-3 px-3 sm:px-4">
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-3 group">
               <div className="h-11 w-11 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/40 flex items-center justify-center transition-colors group-hover:bg-blue-600">
