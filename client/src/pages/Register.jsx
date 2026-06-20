@@ -57,8 +57,9 @@ const Register = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
+                  <label htmlFor="register-name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
                   <input
+                    id="register-name"
                     type="text"
                     required
                     className="mt-2 block w-full px-4 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 focus:border-blue-500 sm:text-sm transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
@@ -68,8 +69,9 @@ const Register = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Email address</label>
+                  <label htmlFor="register-email" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Email address</label>
                   <input
+                    id="register-email"
                     type="email"
                     required
                     className="mt-2 block w-full px-4 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 focus:border-blue-500 sm:text-sm transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
@@ -79,8 +81,9 @@ const Register = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">Password</label>
+                  <label htmlFor="register-password" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Password</label>
                   <input
+                    id="register-password"
                     type="password"
                     required
                     className="mt-2 block w-full px-4 py-3.5 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-sm focus:outline-none focus:ring-4 focus:ring-blue-100 dark:focus:ring-blue-900/30 focus:border-blue-500 sm:text-sm transition-all bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
