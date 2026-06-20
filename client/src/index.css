@@ -108,6 +108,18 @@
       inset 0 1px 1px rgba(255, 255, 255, 0.08);
   }
 
+  /* Soften the white rim against the near-black pill in dark mode. */
+  .dark .brand-island::before {
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.05) 30%,
+      rgba(255, 255, 255, 0) 50%,
+      rgba(255, 255, 255, 0.05) 70%,
+      rgba(255, 255, 255, 0.2) 100%
+    );
+  }
+
   /* Soft liquid-glass rim — a thin gradient border masked to the pill edge. */
   .brand-island::before {
     content: "";
@@ -231,6 +243,10 @@
   background: rgba(148, 163, 184, 0.06);
   border: 1px solid var(--brand-line);
 }
+/* Lift nested panels off the dark glass card — 6% barely separates in dark mode. */
+.dark .surface-soft {
+  background: rgba(148, 163, 184, 0.1);
+}
 
 /* Hover lift — apply to any interactive card. */
 .card-hover {
@@ -255,6 +271,16 @@
   box-shadow: 0 18px 34px rgba(232, 112, 42, 0.36);
 }
 .brand-accent-action:active { transform: scale(0.97); }
+
+/* Branded keyboard focus ring for the shared interactive utilities. Uses
+   :focus-visible so mouse clicks don't show it; box-shadow follows the rounded
+   corners (outline would be clipped on these pill/glass shapes). */
+.brand-primary-action:focus-visible,
+.brand-accent-action:focus-visible,
+.brand-chip:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--brand-bg), 0 0 0 6px rgba(59, 130, 246, 0.7);
+}
 
 /* Consistent form input. */
 .brand-input {
