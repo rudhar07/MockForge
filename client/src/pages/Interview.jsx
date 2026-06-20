@@ -86,6 +86,41 @@ const InterviewLoadingSkeleton = () => (
   </div>
 );
 
+// Circular countdown ring — replaces the flat timer pill.
+const TimerRing = ({ timeLeft, total = 600 }) => {
+  const r = 26;
+  const circumference = 2 * Math.PI * r;
+  const frac = Math.max(0, Math.min(timeLeft / total, 1));
+  const offset = circumference * (1 - frac);
+  const danger = timeLeft < 60;
+  const color = danger ? '#ef4444' : timeLeft < 120 ? '#f59e0b' : '#3b82f6';
+  const mm = Math.floor(timeLeft / 60);
+  const ss = (timeLeft % 60).toString().padStart(2, '0');
+
+  return (
+    <div className={`relative h-20 w-20 shrink-0 ${danger ? 'animate-pulse' : ''}`}>
+      <svg className="h-20 w-20 -rotate-90" viewBox="0 0 64 64">
+        <circle cx="32" cy="32" r={r} fill="none" strokeWidth="6" className="stroke-gray-200 dark:stroke-gray-700" />
+        <circle
+          cx="32"
+          cy="32"
+          r={r}
+          fill="none"
+          strokeWidth="6"
+          stroke={color}
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{ transition: 'stroke-dashoffset 1s linear' }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="stat-figure text-lg font-black text-gray-900 dark:text-white">{mm}:{ss}</span>
+      </div>
+    </div>
+  );
+};
+
 const Interview = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
@@ -1026,13 +1061,18 @@ const Interview = () => {
               </p>
             </div>
 
-            <div className={`flex items-center font-bold px-4 py-2 rounded-xl w-max ${timeLeft < 60 ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 animate-pulse' : 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'}`}>
-              <Clock className="w-4 h-4 mr-2" />
-              {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+            <div className="flex items-center gap-3">
+              <div className="text-right hidden sm:block">
+                <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400 flex items-center justify-end gap-1">
+                  <Clock className="h-3.5 w-3.5" /> Time left
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">{timeLeft < 60 ? 'Final stretch!' : 'Stay focused'}</p>
+              </div>
+              <TimerRing timeLeft={timeLeft} total={600} />
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+          <div className="surface-card p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Progress</p>
@@ -1054,7 +1094,7 @@ const Interview = () => {
 
         <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
           <aside className="xl:sticky xl:top-24">
-            <div className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+            <div className="surface-card p-5">
               <div className="flex items-center justify-between gap-3 xl:flex-col xl:items-start xl:justify-start">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -1098,7 +1138,7 @@ const Interview = () => {
             </div>
           </aside>
 
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8 transition-colors duration-300">
+          <div className="surface-card p-6 lg:p-8">
             <div className="flex flex-wrap gap-2 mb-5">
               <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-sm font-semibold text-slate-700 dark:text-gray-200 capitalize">
                 {currentQ.difficulty}
@@ -1120,138 +1160,142 @@ const Interview = () => {
               </button>
             </div>
 
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg whitespace-pre-wrap">{currentQ.description}</p>
-
-            {/* ---- MCQ rendering (existing behavior) ---- */}
+            {/* ---- MCQ: single column ---- */}
             {currentQ.type === 'mcq' && (
-              <div className="space-y-4">
-                {currentQ.options.map((option, idx) => {
-                  const isSelected = answers[currentQ._id] === option;
-
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => handleSelectAnswer(option)}
-                      className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
-                        isSelected
-                          ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
-                          : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
-                      }`}
-                    >
-                      {option}
-                    </button>
-                  );
-                })}
-              </div>
+              <>
+                <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-3">{currentQ.title}</h2>
+                <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg whitespace-pre-wrap">{currentQ.description}</p>
+                <div className="space-y-4">
+                  {currentQ.options.map((option, idx) => {
+                    const isSelected = answers[currentQ._id] === option;
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => handleSelectAnswer(option)}
+                        className={`w-full text-left p-5 border-2 rounded-xl transition-all duration-200 font-semibold text-lg shadow-sm ${
+                          isSelected
+                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-100'
+                            : 'border-gray-100 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 text-gray-700 dark:text-gray-300'
+                        }`}
+                      >
+                        {option}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             )}
 
-            {/* ---- Code question rendering ---- */}
+            {/* ---- Code: LeetCode-style split (problem | editor) ---- */}
             {currentQ.type === 'code' && (
-              <div className="space-y-5">
-                {/* Language + hidden test count metadata */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold inline-flex items-center gap-1">
-                    <Code className="h-3 w-3" />
-                    {currentQ.language || 'code'}
-                  </span>
-                  {typeof currentQ.hiddenTestCount === 'number' && currentQ.hiddenTestCount > 0 && (
-                    <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300 text-xs font-semibold">
-                      {currentQ.hiddenTestCount} hidden test{currentQ.hiddenTestCount === 1 ? '' : 's'}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* LEFT: problem statement */}
+                <div className="space-y-4 lg:max-h-[600px] lg:overflow-y-auto lg:pr-3">
+                  <h2 className="text-2xl font-bold text-gray-800 dark:text-white">{currentQ.title}</h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-3 py-1 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 text-xs font-semibold inline-flex items-center gap-1">
+                      <Code className="h-3 w-3" />
+                      {currentQ.language || 'code'}
                     </span>
+                    {typeof currentQ.hiddenTestCount === 'number' && currentQ.hiddenTestCount > 0 && (
+                      <span className="px-3 py-1 rounded-full bg-slate-100 dark:bg-gray-700 text-slate-700 dark:text-gray-300 text-xs font-semibold">
+                        {currentQ.hiddenTestCount} hidden test{currentQ.hiddenTestCount === 1 ? '' : 's'}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400 whitespace-pre-wrap leading-relaxed">{currentQ.description}</p>
+
+                  {currentQ.sampleTestCases && currentQ.sampleTestCases.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">Examples</h3>
+                      {currentQ.sampleTestCases.map((tc, idx) => (
+                        <div key={idx} className="surface-soft p-4 space-y-2">
+                          <div>
+                            <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Input</div>
+                            <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.input || '(no input)'}</pre>
+                          </div>
+                          <div>
+                            <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Expected output</div>
+                            <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.expectedOutput}</pre>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
 
-                {/* Sample test cases — LeetCode-style worked examples */}
-                {currentQ.sampleTestCases && currentQ.sampleTestCases.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-300">Examples</h3>
-                    {currentQ.sampleTestCases.map((tc, idx) => (
-                      <div key={idx} className="rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-slate-50 dark:bg-gray-900/30 space-y-2">
-                        <div>
-                          <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Input</div>
-                          <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.input || '(no input)'}</pre>
-                        </div>
-                        <div>
-                          <div className="text-xs font-bold text-gray-500 dark:text-gray-400">Expected output</div>
-                          <pre className="mt-1 text-sm font-mono text-gray-800 dark:text-gray-100 whitespace-pre-wrap">{tc.expectedOutput}</pre>
-                        </div>
-                      </div>
-                    ))}
+                {/* RIGHT: editor + run + output */}
+                <div className="space-y-4">
+                  <CodeEditor
+                    language={currentQ.language}
+                    value={answers[currentQ._id] ?? ''}
+                    onChange={(code) =>
+                      setAnswers((prev) => ({ ...prev, [currentQ._id]: code }))
+                    }
+                    height="420px"
+                  />
+
+                  <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                    <button
+                      type="button"
+                      onClick={runCurrentCode}
+                      disabled={running[currentQ._id]}
+                      className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold disabled:opacity-60"
+                    >
+                      {running[currentQ._id] ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Running…
+                        </>
+                      ) : (
+                        <>
+                          <Play className="h-4 w-4 mr-2" />
+                          Run Code
+                        </>
+                      )}
+                    </button>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Runs against the first sample. Full scoring at submit.
+                    </p>
                   </div>
-                )}
 
-                {/* Monaco editor */}
-                <CodeEditor
-                  language={currentQ.language}
-                  value={answers[currentQ._id] ?? ''}
-                  onChange={(code) =>
-                    setAnswers((prev) => ({ ...prev, [currentQ._id]: code }))
-                  }
-                  height="360px"
-                />
-
-                {/* Run Code button + output panel */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={runCurrentCode}
-                    disabled={running[currentQ._id]}
-                    className="inline-flex items-center justify-center px-5 py-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-semibold disabled:opacity-60"
-                  >
-                    {running[currentQ._id] ? (
-                      <>
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Running…
-                      </>
-                    ) : (
-                      <>
-                        <Play className="h-4 w-4 mr-2" />
-                        Run Code
-                      </>
-                    )}
-                  </button>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Runs against the first sample. Full scoring happens at submit.
-                  </p>
-                </div>
-
-                {runOutput[currentQ._id] && (
-                  <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-900 dark:bg-black p-4 space-y-2">
-                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
-                      <Terminal className="h-3.5 w-3.5 text-slate-300" />
-                      <span className={
-                        runOutput[currentQ._id].status === 'success'
-                          ? 'text-emerald-400'
-                          : runOutput[currentQ._id].status === 'timeout'
-                            ? 'text-amber-400'
-                            : 'text-rose-400'
-                      }>
-                        {runOutput[currentQ._id].status}
-                      </span>
-                      {typeof runOutput[currentQ._id].runtimeMs === 'number' && (
-                        <span className="text-slate-400 font-normal">
-                          · {runOutput[currentQ._id].runtimeMs}ms
+                  {runOutput[currentQ._id] && (
+                    <div className="anim-up rounded-xl border border-gray-200 dark:border-gray-700 bg-slate-900 dark:bg-black p-4 space-y-2">
+                      <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                        <Terminal className="h-3.5 w-3.5 text-slate-300" />
+                        <span className={
+                          runOutput[currentQ._id].status === 'success'
+                            ? 'text-emerald-400'
+                            : runOutput[currentQ._id].status === 'timeout'
+                              ? 'text-amber-400'
+                              : 'text-rose-400'
+                        }>
+                          {runOutput[currentQ._id].status}
                         </span>
+                        {typeof runOutput[currentQ._id].runtimeMs === 'number' && (
+                          <span className="text-slate-400 font-normal">
+                            · {runOutput[currentQ._id].runtimeMs}ms
+                          </span>
+                        )}
+                      </div>
+                      {runOutput[currentQ._id].stdout && (
+                        <div>
+                          <div className="text-xs text-slate-400 mb-1">stdout</div>
+                          <pre className="text-sm font-mono text-emerald-200 whitespace-pre-wrap">{runOutput[currentQ._id].stdout}</pre>
+                        </div>
+                      )}
+                      {runOutput[currentQ._id].stderr && (
+                        <div>
+                          <div className="text-xs text-slate-400 mb-1">stderr</div>
+                          <pre className="text-sm font-mono text-rose-300 whitespace-pre-wrap">{runOutput[currentQ._id].stderr}</pre>
+                        </div>
+                      )}
+                      {runOutput[currentQ._id].message && (
+                        <div className="text-xs text-slate-300">{runOutput[currentQ._id].message}</div>
                       )}
                     </div>
-                    {runOutput[currentQ._id].stdout && (
-                      <div>
-                        <div className="text-xs text-slate-400 mb-1">stdout</div>
-                        <pre className="text-sm font-mono text-emerald-200 whitespace-pre-wrap">{runOutput[currentQ._id].stdout}</pre>
-                      </div>
-                    )}
-                    {runOutput[currentQ._id].stderr && (
-                      <div>
-                        <div className="text-xs text-slate-400 mb-1">stderr</div>
-                        <pre className="text-sm font-mono text-rose-300 whitespace-pre-wrap">{runOutput[currentQ._id].stderr}</pre>
-                      </div>
-                    )}
-                    {runOutput[currentQ._id].message && (
-                      <div className="text-xs text-slate-300">{runOutput[currentQ._id].message}</div>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 
