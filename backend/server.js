@@ -21,6 +21,16 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 
+// Lightweight health check for uptime pings (keeps Render's free tier warm).
+// No DB call — we don't want a keep-alive ping to spend Mongo/Atlas ops.
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/questions', questionRoutes);
