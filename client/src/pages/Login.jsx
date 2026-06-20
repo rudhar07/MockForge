@@ -32,14 +32,14 @@ const Login = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,#dbeafe,transparent_38%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] dark:bg-[radial-gradient(circle_at_top,#172554,transparent_32%),linear-gradient(180deg,#0f172a_0%,#020617_100%)] py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-5xl w-full grid lg:grid-cols-[1.05fr_0.95fr] gap-8 items-stretch">
-        <div className="hidden lg:flex flex-col justify-between rounded-[2rem] border border-white/60 dark:border-white/10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.12)] p-10">
+        <div className="hidden lg:flex anim-up flex-col justify-between rounded-[2rem] border border-white/60 dark:border-white/10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.12)] p-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 dark:border-blue-900/40 bg-blue-50/80 dark:bg-blue-900/20 px-4 py-2 text-sm font-semibold text-blue-700 dark:text-blue-300">
               <ShieldCheck className="h-4 w-4" />
               Secure interview workspace
             </div>
-            <h1 className="mt-8 text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-              Walk in prepared, not just hopeful.
+            <h1 className="mt-8 text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+              Walk in <span className="font-playfair italic font-medium text-blue-600 dark:text-blue-400">prepared</span>, not just hopeful.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
               MockForge gives you timed practice, score tracking, and structured repetition so every session compounds into real interview confidence.
@@ -60,7 +60,7 @@ const Login = () => {
           </div>
         </div>
 
-        <div className="max-w-md lg:max-w-none w-full">
+        <div className="max-w-md lg:max-w-none w-full anim-up d1">
           <div className="bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl p-8 sm:p-10 rounded-[2rem] shadow-[0_30px_80px_rgba(15,23,42,0.16)] border border-white/70 dark:border-slate-800 transition-colors">
             <div className="text-center">
               <div className="mx-auto h-14 w-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center shadow-sm">

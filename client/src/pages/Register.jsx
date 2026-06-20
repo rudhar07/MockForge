@@ -33,7 +33,7 @@ const Register = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,#dbeafe,transparent_38%),linear-gradient(180deg,#f8fafc_0%,#eef2ff_100%)] dark:bg-[radial-gradient(circle_at_top,#172554,transparent_32%),linear-gradient(180deg,#0f172a_0%,#020617_100%)] py-16 px-4 sm:px-6 lg:px-8 transition-colors duration-300">
       <div className="max-w-5xl w-full grid lg:grid-cols-[0.95fr_1.05fr] gap-8 items-stretch">
-        <div className="max-w-md lg:max-w-none w-full order-2 lg:order-1">
+        <div className="max-w-md lg:max-w-none w-full order-2 lg:order-1 anim-up d1">
           <div className="bg-white/85 dark:bg-slate-900/75 backdrop-blur-xl p-8 sm:p-10 rounded-[2rem] shadow-[0_30px_80px_rgba(15,23,42,0.16)] border border-white/70 dark:border-slate-800 transition-colors">
             <div className="text-center">
               <div className="mx-auto h-14 w-14 bg-blue-100 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center shadow-sm">
@@ -102,14 +102,14 @@ const Register = () => {
           </div>
         </div>
 
-        <div className="hidden lg:flex order-1 lg:order-2 flex-col justify-between rounded-[2rem] border border-white/60 dark:border-white/10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.12)] p-10">
+        <div className="hidden lg:flex anim-up order-1 lg:order-2 flex-col justify-between rounded-[2rem] border border-white/60 dark:border-white/10 bg-white/65 dark:bg-slate-900/55 backdrop-blur-xl shadow-[0_30px_80px_rgba(15,23,42,0.12)] p-10">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/80 dark:border-emerald-900/40 bg-emerald-50/80 dark:bg-emerald-900/20 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
               <Sparkles className="h-4 w-4" />
               Build your prep system
             </div>
-            <h1 className="mt-8 text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-              Start compounding better interview reps.
+            <h1 className="mt-8 text-5xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+              Start <span className="font-playfair italic font-medium text-emerald-600 dark:text-emerald-400">compounding</span> better interview reps.
             </h1>
             <p className="mt-5 max-w-xl text-lg leading-8 text-slate-600 dark:text-slate-300">
               Create your profile, track progress over time, and turn scattered prep into a repeatable system that actually moves the needle.
