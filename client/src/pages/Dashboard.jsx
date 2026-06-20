@@ -19,6 +19,18 @@ import {
 } from 'lucide-react';
 import API from '../api/axios';
 
+// Local-time date helpers. We deliberately avoid toISOString() (which is UTC):
+// mixing a UTC date string with local-midnight iteration causes an off-by-one
+// for users east/west of UTC, so today's attempt wouldn't light up the grid.
+const toDayKey = (value) => {
+  const d = new Date(value);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const fromDayKey = (key) => {
+  const [y, m, d] = key.split('-').map(Number);
+  return new Date(y, m - 1, d); // local midnight, timezone-safe
+};
+
 // Animate a number from 0 → target with an ease-out cubic. Used on stat cards.
 const useCountUp = (target, duration = 900) => {
   const [val, setVal] = useState(0);
@@ -48,13 +60,15 @@ const CountUp = ({ value, className }) => {
 
 // GitHub-style practice heatmap: last 84 days, colored by attempts that day.
 const StreakHeatmap = ({ countsByDay }) => {
+  const [hovered, setHovered] = useState(null);
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const cells = [];
   for (let i = 83; i >= 0; i -= 1) {
     const d = new Date(today);
     d.setDate(today.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
+    const key = toDayKey(d); // local key — matches countsByDay
     cells.push({ key, count: countsByDay[key] || 0, date: d });
   }
   const levelClass = (c) => {
@@ -63,14 +77,24 @@ const StreakHeatmap = ({ countsByDay }) => {
     if (c === 2) return 'bg-blue-500 dark:bg-blue-600';
     return 'bg-blue-600 dark:bg-blue-400';
   };
+  const fmt = (date) => date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+
   return (
     <div>
+      {/* Live hover label — updates immediately as you move across cells. */}
+      <div className="mb-3 h-5 text-sm text-gray-500 dark:text-gray-400">
+        {hovered
+          ? `${fmt(hovered.date)} — ${hovered.count} session${hovered.count === 1 ? '' : 's'}`
+          : 'Hover a day to see details'}
+      </div>
       <div className="grid grid-rows-7 grid-flow-col gap-1 w-max">
         {cells.map((c) => (
           <div
             key={c.key}
-            title={`${c.date.toLocaleDateString()} — ${c.count} session${c.count === 1 ? '' : 's'}`}
-            className={`h-3 w-3 rounded-[3px] ${levelClass(c.count)}`}
+            onMouseEnter={() => setHovered(c)}
+            onMouseLeave={() => setHovered(null)}
+            title={`${fmt(c.date)} — ${c.count} session${c.count === 1 ? '' : 's'}`}
+            className={`h-3 w-3 rounded-[3px] cursor-pointer transition-transform hover:scale-125 hover:ring-1 hover:ring-blue-400 ${levelClass(c.count)}`}
           />
         ))}
       </div>
@@ -183,33 +207,30 @@ const Dashboard = () => {
 
   const latestAttempt = sortedHistory[0] ?? null;
 
-  // Attempts per ISO day — powers both the streak math and the heatmap.
+  // Attempts per LOCAL day — powers both the streak math and the heatmap.
   const countsByDay = sortedHistory.reduce((acc, attempt) => {
-    const key = new Date(attempt.createdAt).toISOString().slice(0, 10);
+    const key = toDayKey(attempt.createdAt);
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
 
-  const uniqueDays = Object.keys(countsByDay).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  // Newest day first. YYYY-MM-DD sorts chronologically as plain strings.
+  const uniqueDays = Object.keys(countsByDay).sort((a, b) => b.localeCompare(a));
 
   let streak = 0;
   if (uniqueDays.length > 0) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const latestDay = new Date(uniqueDays[0]);
-    latestDay.setHours(0, 0, 0, 0);
-
+    const latestDay = fromDayKey(uniqueDays[0]); // already local midnight
     const diffFromToday = Math.round((today.getTime() - latestDay.getTime()) / 86400000);
 
+    // Count the streak if the most recent practice was today or yesterday.
     if (diffFromToday <= 1) {
       streak = 1;
       for (let i = 1; i < uniqueDays.length; i += 1) {
-        const prev = new Date(uniqueDays[i - 1]);
-        const current = new Date(uniqueDays[i]);
-        prev.setHours(0, 0, 0, 0);
-        current.setHours(0, 0, 0, 0);
-
+        const prev = fromDayKey(uniqueDays[i - 1]);
+        const current = fromDayKey(uniqueDays[i]);
         const diff = Math.round((prev.getTime() - current.getTime()) / 86400000);
         if (diff === 1) {
           streak += 1;
