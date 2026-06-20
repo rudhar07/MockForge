@@ -34,7 +34,7 @@ const InterviewLoadingSkeleton = () => (
           <div className="h-11 w-28 rounded-xl bg-gray-200 dark:bg-gray-700" />
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+        <div className="surface-card p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div className="space-y-2">
               <div className="h-4 w-20 rounded-full bg-gray-200 dark:bg-gray-700" />
@@ -47,7 +47,7 @@ const InterviewLoadingSkeleton = () => (
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[220px_minmax(0,1fr)] gap-6 items-start">
-        <aside className="bg-white dark:bg-gray-800 rounded-3xl border border-gray-100 dark:border-gray-700 p-5 shadow-sm">
+        <aside className="surface-card p-5">
           <div className="space-y-3">
             <div className="h-4 w-32 rounded-full bg-gray-200 dark:bg-gray-700" />
             <div className="h-4 w-36 rounded-full bg-gray-200 dark:bg-gray-700" />
@@ -59,7 +59,7 @@ const InterviewLoadingSkeleton = () => (
           </div>
         </aside>
 
-        <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8 space-y-6">
+        <div className="surface-card p-8 space-y-6">
           <div className="flex gap-2">
             {[...Array(3)].map((_, index) => (
               <div key={index} className="h-8 w-24 rounded-full bg-gray-200 dark:bg-gray-700" />
@@ -599,7 +599,7 @@ const Interview = () => {
       <div className="flex-grow flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 transition-colors duration-300">
         <div className="max-w-4xl mx-auto w-full">
           {resumeCandidate?.topic && (
-            <div className="mb-8 rounded-3xl border border-blue-100 dark:border-blue-900/40 bg-white dark:bg-gray-800 p-6 shadow-sm">
+            <div className="surface-card mb-8 p-6">
               <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-wide text-blue-600 dark:text-blue-400">
@@ -631,7 +631,7 @@ const Interview = () => {
           )}
 
           <div className="text-center mb-12">
-            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Select Interview Topic</h1>
+            <h1 className="text-4xl font-extrabold text-gray-900 dark:text-white mb-4">Select Interview <span className="font-playfair italic font-medium text-blue-600 dark:text-blue-400">Topic</span></h1>
             <p className="text-xl text-gray-600 dark:text-gray-400">Choose a focused practice round and step into interview mode.</p>
           </div>
 
@@ -672,7 +672,7 @@ const Interview = () => {
   if (fetchError) {
     return (
       <div className="flex-grow flex items-center justify-center px-4 py-24">
-        <div className="max-w-lg w-full bg-white dark:bg-gray-800 border border-red-100 dark:border-red-900/40 rounded-2xl p-8 shadow-sm text-center">
+        <div className="surface-card max-w-lg w-full p-8 text-center">
           <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Couldn&apos;t start this interview</h2>
           <p className="mt-3 text-gray-600 dark:text-gray-400">{fetchError}</p>
@@ -709,11 +709,11 @@ const Interview = () => {
 
     return (
       <div className="flex-grow py-16 px-4 flex items-center justify-center">
-        <div className="bg-white dark:bg-gray-800 p-10 rounded-3xl shadow-xl border border-gray-100 dark:border-gray-700 text-center max-w-4xl w-full">
+        <div className="surface-card p-10 text-center max-w-4xl w-full">
           <div className="mx-auto mb-6 h-16 w-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
             <CircleCheck className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
           </div>
-          <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">Interview Complete</h2>
+          <h2 className="text-3xl font-black text-gray-900 dark:text-white mb-3">Interview <span className="font-playfair italic font-medium text-emerald-600 dark:text-emerald-400">Complete</span></h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
             Nice work. You finished the <span className="capitalize font-semibold">{topic}</span> round and your submission was saved.
           </p>
@@ -946,10 +946,10 @@ const Interview = () => {
     return (
       <div className="flex-grow py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-md border border-gray-100 dark:border-gray-700 p-8">
+          <div className="surface-card p-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
               <div>
-                <h1 className="text-3xl font-black text-gray-900 dark:text-white">Review Your Answers</h1>
+                <h1 className="text-3xl font-black text-gray-900 dark:text-white">Review Your <span className="font-playfair italic font-medium text-blue-600 dark:text-blue-400">Answers</span></h1>
                 <p className="mt-2 text-gray-600 dark:text-gray-400">
                   Check your selections before submitting. You can still jump back and edit any answer.
                 </p>
@@ -1055,7 +1055,7 @@ const Interview = () => {
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-5">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">Mock Interview</p>
-              <h1 className="text-3xl font-black text-gray-900 dark:text-white capitalize mt-2">{topic} Round</h1>
+              <h1 className="text-3xl font-black text-gray-900 dark:text-white capitalize mt-2">{topic} <span className="font-playfair italic font-medium text-blue-600 dark:text-blue-400">Round</span></h1>
               <p className="mt-2 text-gray-600 dark:text-gray-400">
                 Stay calm, answer deliberately, and submit when you're satisfied.
               </p>
