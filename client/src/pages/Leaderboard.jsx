@@ -45,7 +45,7 @@ const LeaderboardSkeleton = () => (
 const PodiumCard = ({ entry, rank, isYou }) => {
   const styles = {
     1: { height: 'sm:mt-0', icon: Crown, ring: 'ring-2 ring-amber-400/70', glow: 'shadow-[0_20px_50px_rgba(245,158,11,0.35)]', label: 'text-amber-500', medal: 'text-amber-400' },
-    2: { height: 'sm:mt-8', icon: Medal, ring: 'ring-1 ring-slate-300/60', glow: '', label: 'text-slate-400', medal: 'text-slate-400' },
+    2: { height: 'sm:mt-8', icon: Medal, ring: 'ring-1 ring-slate-400/50 dark:ring-slate-300/40', glow: '', label: 'text-slate-500 dark:text-slate-300', medal: 'text-slate-500 dark:text-slate-300' },
     3: { height: 'sm:mt-12', icon: Medal, ring: 'ring-1 ring-amber-700/40', glow: '', label: 'text-amber-700 dark:text-amber-500', medal: 'text-amber-700 dark:text-amber-500' },
   }[rank];
   const Icon = styles.icon;
