@@ -4,7 +4,7 @@ import Leaderboard from './pages/Leaderboard';
 import Landing from './pages/Landing'; // import kiya landing page bbg
 import AdminDashboard from './pages/AdminDashboard';
 import Interview from './pages/Interview';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -20,7 +20,29 @@ const PublicHome = () => {
   return user ? <Navigate to="/dashboard" /> : <Landing />;
 };
 
+// Wraps the routed page in a pathname-keyed container so each navigation
+// replays the .route-transition entrance. The wrapper is itself a growing
+// flex column so pages that rely on `flex-grow` (Dashboard, Interview) still
+// fill the viewport exactly as they did when they were direct children.
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  return (
+    <div key={location.pathname} className="route-transition flex flex-col flex-grow">
+      <Routes location={location}>
+        {/* Public Routes */}
+        <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
+        <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
+        {/* Protected Routes (u can only see these if our bouncer lets you in!) */}
+        <Route path="/" element={<PublicHome />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+      </Routes>
+    </div>
+  );
+};
 
 function App() {
   return (
@@ -29,21 +51,7 @@ function App() {
         {/* 1. Add the Toaster component right at the top - haan exactly yahan nilkul yaha */}
         <Toaster position="top-center" reverseOrder={false} />
         <Navbar />
-        
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/interview" element={<ProtectedRoute><Interview /></ProtectedRoute>} />
-          <Route path="/leaderboard" element={<ProtectedRoute><Leaderboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          {/* Protected Routes (u can only see these if our bouncer lets you in!) */}
-
-          <Route path="/" element={<PublicHome />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-
-        </Routes>
+        <AnimatedRoutes />
       </div>
     </BrowserRouter>
   );
