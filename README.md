@@ -117,6 +117,8 @@ cp .env.example .env
 ```
 
 > The backend defaults to port **5001** because macOS's AirPlay Receiver occupies 5000.
+>
+> On startup the server checks its configuration: it refuses to start if `MONGO_URI` or `JWT_SECRET` is missing, and prints a warning for each optional key that is not set.
 
 No Atlas cluster for local work? Run MongoDB in Docker — the template's `MONGO_URI` already points at it:
 ```bash
