@@ -34,11 +34,9 @@ const fromDayKey = (key) => {
 // Animate a number from 0 → target with an ease-out cubic. Used on stat cards.
 const useCountUp = (target, duration = 900) => {
   const [val, setVal] = useState(0);
+  const animatable = typeof target === 'number' && !Number.isNaN(target);
   useEffect(() => {
-    if (typeof target !== 'number' || Number.isNaN(target)) {
-      setVal(target);
-      return undefined;
-    }
+    if (!animatable) return undefined;
     let raf;
     const start = performance.now();
     const tick = (now) => {
@@ -49,8 +47,10 @@ const useCountUp = (target, duration = 900) => {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [target, duration]);
-  return val;
+  }, [target, duration, animatable]);
+  // Non-numeric values aren't animated — derive them during render instead of
+  // copying them into state from the effect (which forced an extra render).
+  return animatable ? val : target;
 };
 
 const CountUp = ({ value, className }) => {
