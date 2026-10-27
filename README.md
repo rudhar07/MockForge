@@ -148,6 +148,14 @@ npm run test:watch   # re-run on save
 
 Backend tests use **Vitest** + **Supertest** against an in-memory MongoDB (`mongodb-memory-server`), so they never touch your real database and need no `.env`. The first run downloads a MongoDB binary (~100 MB).
 
+```bash
+cd client
+npm test             # run once
+npm run test:watch   # re-run on save
+```
+
+Frontend tests use **Vitest** + **React Testing Library** in **jsdom** (a simulated browser). Test files sit next to the code they test (`*.test.jsx`).
+
 ## 📡 API Endpoints
 
 ### Authentication
