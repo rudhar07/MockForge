@@ -28,12 +28,14 @@ const userSchema = new mongoose.Schema(
 );
 
 // 1. Hash the password before saving it to the database
-userSchema.pre('save', async function (next) {
+// Mongoose 9 no longer passes `next` to pre hooks — an async function just
+// returns (or throws) to signal it's done.
+userSchema.pre('save', async function () {
   // If the password wasn't modified (e.g., updating user name), don't hash it again
   if (!this.isModified('password')) {
-    next();
+    return;
   }
-  
+
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
