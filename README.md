@@ -1,4 +1,5 @@
 <p align="center">
+  <a href="https://github.com/rudhar07/MockForge/actions/workflows/ci.yml"><img src="https://github.com/rudhar07/MockForge/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
   <img src="https://img.shields.io/badge/MERN-Stack-blue?style=for-the-badge" alt="MERN Stack" />
   <img src="https://img.shields.io/badge/Code_Execution-Judge0-6366f1?style=for-the-badge" alt="Judge0" />
   <img src="https://img.shields.io/badge/Editor-Monaco-0078d4?style=for-the-badge" alt="Monaco Editor" />
