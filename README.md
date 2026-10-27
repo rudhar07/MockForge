@@ -139,6 +139,15 @@ npm run dev
 
 App runs at **http://localhost:5173** (the Vite dev server proxies `/api` to the backend).
 
+### 4. Tests
+```bash
+cd backend
+npm test             # run once
+npm run test:watch   # re-run on save
+```
+
+Backend tests use **Vitest** + **Supertest** against an in-memory MongoDB (`mongodb-memory-server`), so they never touch your real database and need no `.env`. The first run downloads a MongoDB binary (~100 MB).
+
 ## 📡 API Endpoints
 
 ### Authentication
