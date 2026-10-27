@@ -16,4 +16,10 @@ export default defineConfig({
       },
     },
   },
+  // Vitest reads this block: run component tests in jsdom, a simulated
+  // browser DOM inside Node.
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+  },
 })
