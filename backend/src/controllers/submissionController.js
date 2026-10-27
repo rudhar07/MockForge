@@ -213,102 +213,69 @@ const buildReviewFromResponses = async ({ topic, responses = [] }) => {
   return { score, totalPossible, reviewItems };
 };
 
+// Request bodies are validated by `validate(submissionSchema)` in
+// submissionRoutes.js, and errors are handled by middleware/errorHandler.js.
+
 // @desc    Save an interview score securely
 // @route   POST /api/submissions
 export const saveSubmission = async (req, res) => {
-  try {
-    const { topic, responses = [], flaggedQuestionIds = [] } = req.body;
+  const { topic, responses, flaggedQuestionIds } = req.body;
 
-    if (!topic) {
-      return res.status(400).json({ message: 'Topic is required' });
-    }
+  const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
 
-    if (!Array.isArray(responses)) {
-      return res.status(400).json({ message: 'Responses must be an array' });
-    }
+  const submission = new Submission({
+    user: req.user._id, // This is safely grabbed from the JWT token via our Auth Middleware
+    topic,
+    score,
+    totalPossible,
+  });
 
-    if (!Array.isArray(flaggedQuestionIds)) {
-      return res.status(400).json({ message: 'Flagged question ids must be an array' });
-    }
+  const savedSubmission = await submission.save();
+  const aiReview = await generateAiReview({
+    topic,
+    score,
+    totalPossible,
+    reviewItems,
+    flaggedQuestionIds,
+  });
 
-    const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
-
-    const submission = new Submission({
-      user: req.user._id, // This is safely grabbed from the JWT token via our Auth Middleware
-      topic,
-      score,
-      totalPossible,
-    });
-
-    const savedSubmission = await submission.save();
-    const aiReview = await generateAiReview({
-      topic,
-      score,
-      totalPossible,
-      reviewItems,
-      flaggedQuestionIds,
-    });
-
-    res.status(201).json({
-      ...savedSubmission.toObject(),
-      score,
-      totalPossible,
-      aiReview,
-      reviewItems,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.status(201).json({
+    ...savedSubmission.toObject(),
+    score,
+    totalPossible,
+    aiReview,
+    reviewItems,
+  });
 };
 
 // @desc    Regenerate AI review without saving a new submission
 // @route   POST /api/submissions/review
 export const regenerateSubmissionReview = async (req, res) => {
-  try {
-    const { topic, responses = [], flaggedQuestionIds = [] } = req.body;
+  const { topic, responses, flaggedQuestionIds } = req.body;
 
-    if (!topic) {
-      return res.status(400).json({ message: 'Topic is required' });
-    }
+  const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
+  const aiReview = await generateAiReview({
+    topic,
+    score,
+    totalPossible,
+    reviewItems,
+    flaggedQuestionIds,
+  });
 
-    if (!Array.isArray(responses)) {
-      return res.status(400).json({ message: 'Responses must be an array' });
-    }
-
-    if (!Array.isArray(flaggedQuestionIds)) {
-      return res.status(400).json({ message: 'Flagged question ids must be an array' });
-    }
-
-    const { score, totalPossible, reviewItems } = await buildReviewFromResponses({ topic, responses });
-    const aiReview = await generateAiReview({
-      topic,
-      score,
-      totalPossible,
-      reviewItems,
-      flaggedQuestionIds,
-    });
-
-    res.json({
-      score,
-      totalPossible,
-      aiReview,
-      reviewItems,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.json({
+    score,
+    totalPossible,
+    aiReview,
+    reviewItems,
+  });
 };
 
 // @desc    get the current logged-in user's past history
 // @route   GET /api/submissions/history
 export const getMySubmissions = async (req, res) => {
-  try {
-    // Find all submissions matching this exact user, sorted by Newest first (-1)
-    const submissions = await Submission.find({ user: req.user._id }).sort({ createdAt: -1 });
-    res.json(submissions);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  // Find all submissions matching this exact user, sorted by Newest first (-1)
+  const submissions = await Submission.find({ user: req.user._id }).sort({ createdAt: -1 });
+  res.json(submissions);
 };
 
 // naya query add kiya leaderboard bnane se pehle
@@ -316,55 +283,51 @@ export const getMySubmissions = async (req, res) => {
 // @desc    Get top 10 highest scores across all users bbg
 // @route   GET /api/submissions/leaderboard bbg
 export const getLeaderboard = async (req, res) => {
-  try {
-    const topSubmissions = await Submission.aggregate([
-      {
-        $addFields: {
-          percentage: {
-            $cond: [
-              { $gt: ['$totalPossible', 0] },
-              { $multiply: [{ $divide: ['$score', '$totalPossible'] }, 100] },
-              0,
-            ],
-          },
+  const topSubmissions = await Submission.aggregate([
+    {
+      $addFields: {
+        percentage: {
+          $cond: [
+            { $gt: ['$totalPossible', 0] },
+            { $multiply: [{ $divide: ['$score', '$totalPossible'] }, 100] },
+            0,
+          ],
         },
       },
-      {
-        $sort: {
-          percentage: -1,
-          score: -1,
-          createdAt: 1,
-        },
+    },
+    {
+      $sort: {
+        percentage: -1,
+        score: -1,
+        createdAt: 1,
       },
-      { $limit: 10 },
-      {
-        $lookup: {
-          from: 'users',
-          localField: 'user',
-          foreignField: '_id',
-          as: 'user',
-        },
+    },
+    { $limit: 10 },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'user',
+        foreignField: '_id',
+        as: 'user',
       },
-      {
-        $unwind: {
-          path: '$user',
-          preserveNullAndEmptyArrays: true,
-        },
+    },
+    {
+      $unwind: {
+        path: '$user',
+        preserveNullAndEmptyArrays: true,
       },
-      {
-        $project: {
-          topic: 1,
-          score: 1,
-          totalPossible: 1,
-          createdAt: 1,
-          percentage: { $round: ['$percentage', 0] },
-          'user.name': 1,
-        },
+    },
+    {
+      $project: {
+        topic: 1,
+        score: 1,
+        totalPossible: 1,
+        createdAt: 1,
+        percentage: { $round: ['$percentage', 0] },
+        'user.name': 1,
       },
-    ]);
+    },
+  ]);
 
-    res.json(topSubmissions);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.json(topSubmissions);
 };
