@@ -39,6 +39,39 @@ describe('POST /api/auth/register', () => {
     expect(res.status).toBe(400);
     expect(res.body.message).toBe('User already exists');
   });
+
+  it('handles two simultaneous sign-ups with the same email without a 500', async () => {
+    await User.init(); // make sure the unique email index exists
+    const [first, second] = await Promise.all([
+      request(app).post('/api/auth/register').send(alice),
+      request(app).post('/api/auth/register').send(alice),
+    ]);
+
+    expect([first.status, second.status].sort()).toEqual([201, 400]);
+    expect(await User.countDocuments({ email: alice.email })).toBe(1);
+  });
+
+  it.each([
+    [{ ...alice, name: '   ' }, 'Name is required'],
+    [{ ...alice, email: 'not-an-email' }, 'A valid email is required'],
+    [{ ...alice, password: '123' }, 'Password must be at least 6 characters'],
+    [{ name: 'Alice', email: 'alice@test.dev' }, 'Password is required'],
+  ])('rejects invalid input %#', async (body, message) => {
+    const res = await request(app).post('/api/auth/register').send(body);
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe(message);
+    expect(await User.countDocuments()).toBe(0);
+  });
+
+  it('ignores a client-supplied role', async () => {
+    const res = await request(app)
+      .post('/api/auth/register')
+      .send({ ...alice, role: 'admin' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.role).toBe('user');
+  });
 });
 
 describe('POST /api/auth/login', () => {
@@ -70,5 +103,21 @@ describe('POST /api/auth/login', () => {
     // Same message as a wrong password, so attackers can't probe which emails exist.
     expect(res.status).toBe(401);
     expect(res.body.message).toBe('Invalid email or password');
+  });
+
+  it('accepts an email with surrounding spaces', async () => {
+    await request(app).post('/api/auth/register').send(alice);
+    const res = await request(app)
+      .post('/api/auth/login')
+      .send({ email: '  alice@test.dev ', password: alice.password });
+
+    expect(res.status).toBe(200);
+  });
+
+  it('rejects a missing password with a 400, not a server error', async () => {
+    const res = await request(app).post('/api/auth/login').send({ email: alice.email });
+
+    expect(res.status).toBe(400);
+    expect(res.body.message).toBe('Password is required');
   });
 });
