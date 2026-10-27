@@ -1,5 +1,12 @@
 import mongoose from 'mongoose';
 
+// Allowed values, exported so request validation (validation/questionSchemas.js)
+// uses the exact same lists as the database schema.
+export const QUESTION_TYPES = ['mcq', 'short', 'code'];
+export const TOPICS = ['arrays', 'dp', 'graphs', 'oop'];
+export const DIFFICULTIES = ['easy', 'medium', 'hard'];
+export const LANGUAGES = ['python', 'javascript', 'cpp', 'java', 'c'];
+
 // Sub-schema for code-question test cases.
 // `isSample: true` cases are visible to candidates as worked examples.
 // All other cases are hidden judge cases — used for scoring only.
@@ -33,17 +40,17 @@ const questionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['mcq', 'short', 'code'],
+      enum: QUESTION_TYPES,
       required: true,
     },
     topic: {
       type: String,
-      enum: ['arrays', 'dp', 'graphs', 'oop'],
+      enum: TOPICS,
       required: true,
     },
     difficulty: {
       type: String,
-      enum: ['easy', 'medium', 'hard'],
+      enum: DIFFICULTIES,
       required: true,
     },
 
@@ -65,7 +72,7 @@ const questionSchema = new mongoose.Schema(
     // ---- Code-specific fields ----
     language: {
       type: String,
-      enum: ['python', 'javascript', 'cpp', 'java', 'c'],
+      enum: LANGUAGES,
       // Required only for code questions.
       required: function () {
         return this.type === 'code';

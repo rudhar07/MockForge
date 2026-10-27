@@ -1,4 +1,5 @@
 import Question from '../models/Questions.js';
+import HttpError from '../utils/HttpError.js';
 
 // Strip answer keys before sending questions to interview candidates.
 // MCQs: drop `correctAnswer` and `explanation`.
@@ -38,151 +39,106 @@ const sanitizeQuestion = (question) => {
   return base;
 };
 
+// Request bodies and :id params are validated in questionRoutes.js, and errors
+// (including Mongoose validation errors) are handled by middleware/errorHandler.js.
+
 // @desc    Get all questions
 // @route   GET /api/questions
 // @access  Private (Logged-in users only)
 export const getQuestions = async (req, res) => {
-  try {
-    // Never expose answer keys to interview candidates.
-    const questions = await Question.find({}).lean();
-    res.json(questions.map(sanitizeQuestion));
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  // Never expose answer keys to interview candidates.
+  const questions = await Question.find({}).lean();
+  res.json(questions.map(sanitizeQuestion));
 };
 
 // @desc    Get questions filtered by a specific topic (e.g. 'arrays')
 // @route   GET /api/questions/topic/:topic
 // @access  Private
 export const getQuestionsByTopic = async (req, res) => {
-  try {
-    const questions = await Question.find({ topic: req.params.topic }).lean();
-    res.json(questions.map(sanitizeQuestion));
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const questions = await Question.find({ topic: req.params.topic }).lean();
+  res.json(questions.map(sanitizeQuestion));
 };
 
 // @desc    Get a single question with full admin-edit details
 // @route   GET /api/questions/:id
 // @access  Private/Admin
 export const getQuestionById = async (req, res) => {
-  try {
-    const question = await Question.findById(req.params.id).lean();
+  const question = await Question.findById(req.params.id).lean();
 
-    if (!question) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-
-    res.json(question);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (!question) {
+    throw new HttpError(404, 'Question not found');
   }
+
+  res.json(question);
 };
 
 // @desc    Create a new question
 // @route   POST /api/questions
 // @access  Private/Admin (Only Admins can do this)
 export const createQuestion = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      type,
-      topic,
-      difficulty,
-      options,
-      correctAnswer,
-      explanation,
-      marks,
-      language,
-      starterCode,
-      testCases,
-    } = req.body;
+  const question = new Question({
+    ...req.body,
+    createdBy: req.user._id,
+  });
 
-    const question = new Question({
-      title,
-      description,
-      type,
-      topic,
-      difficulty,
-      options,
-      correctAnswer,
-      explanation,
-      marks,
-      language,
-      starterCode,
-      testCases,
-      createdBy: req.user._id,
-    });
-
-    const createdQuestion = await question.save();
-    res.status(201).json(createdQuestion);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const createdQuestion = await question.save();
+  res.status(201).json(createdQuestion);
 };
 
 // @desc    Update a question
 // @route   PUT /api/questions/:id
 // @access  Private/Admin
 export const updateQuestion = async (req, res) => {
-  try {
-    const {
-      title,
-      description,
-      type,
-      topic,
-      difficulty,
-      options,
-      correctAnswer,
-      explanation,
-      marks,
-      language,
-      starterCode,
-      testCases,
-    } = req.body;
+  const {
+    title,
+    description,
+    type,
+    topic,
+    difficulty,
+    options,
+    correctAnswer,
+    explanation,
+    marks,
+    language,
+    starterCode,
+    testCases,
+  } = req.body;
 
-    const question = await Question.findById(req.params.id);
+  const question = await Question.findById(req.params.id);
 
-    if (!question) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-
-    question.title = title;
-    question.description = description;
-    question.type = type;
-    question.topic = topic;
-    question.difficulty = difficulty;
-    question.options = options;
-    question.correctAnswer = correctAnswer;
-    question.explanation = explanation;
-    question.marks = marks;
-    question.language = language;
-    question.starterCode = starterCode;
-    question.testCases = testCases;
-
-    const updatedQuestion = await question.save();
-    res.json(updatedQuestion);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (!question) {
+    throw new HttpError(404, 'Question not found');
   }
+
+  // PUT replaces the whole question, so every field is assigned — including
+  // ones the client left out, which clears them.
+  question.title = title;
+  question.description = description;
+  question.type = type;
+  question.topic = topic;
+  question.difficulty = difficulty;
+  question.options = options;
+  question.correctAnswer = correctAnswer;
+  question.explanation = explanation;
+  question.marks = marks;
+  question.language = language;
+  question.starterCode = starterCode;
+  question.testCases = testCases;
+
+  const updatedQuestion = await question.save();
+  res.json(updatedQuestion);
 };
 
 // @desc    Delete a question
 // @route   DELETE /api/questions/:id
 // @access  Private/Admin
 export const deleteQuestion = async (req, res) => {
-  try {
-    const question = await Question.findById(req.params.id);
+  const question = await Question.findById(req.params.id);
 
-    if (!question) {
-      return res.status(404).json({ message: 'Question not found' });
-    }
-
-    await question.deleteOne();
-    res.json({ message: 'Question deleted successfully' });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  if (!question) {
+    throw new HttpError(404, 'Question not found');
   }
+
+  await question.deleteOne();
+  res.json({ message: 'Question deleted successfully' });
 };
