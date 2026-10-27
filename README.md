@@ -110,13 +110,16 @@ cd backend
 npm install
 ```
 
-Create `backend/.env`:
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key_here
-RAPIDAPI_KEY=your_rapidapi_key            # enables code execution (Judge0 CE)
-OPENROUTER_API_KEY=your_openrouter_key    # optional, enables AI coach
+Create `backend/.env` from the template and fill in your values:
+```bash
+cp .env.example .env
+```
+
+> The backend defaults to port **5001** because macOS's AirPlay Receiver occupies 5000.
+
+No Atlas cluster for local work? Run MongoDB in Docker — the template's `MONGO_URI` already points at it:
+```bash
+docker run -d --name mockforge-mongo -p 27017:27017 -v mockforge-mongo-data:/data/db mongo:7
 ```
 
 Seed the question bank (MCQ + DSA coding questions), then start the server:

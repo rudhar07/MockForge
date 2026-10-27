@@ -52,7 +52,9 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-const PORT = process.env.PORT || 5000;
+// 5001, not 5000: macOS's AirPlay Receiver already listens on 5000.
+// Render injects its own PORT, so this default only matters locally.
+const PORT = process.env.PORT || 5001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
