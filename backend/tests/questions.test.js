@@ -26,7 +26,9 @@ const codeQuestion = {
   starterCode: '',
   testCases: [
     { input: '1 2', expectedOutput: '3', isSample: true },
-    { input: '40 2', expectedOutput: '42', isSample: false },
+    // Distinctive values, so the leak check below can't match by accident
+    // (a plain "42" also shows up inside random ObjectIds now and then).
+    { input: 'HIDDEN_INPUT_7f3a', expectedOutput: 'HIDDEN_OUTPUT_7f3a', isSample: false },
   ],
 };
 
@@ -133,6 +135,6 @@ describe('question routes', () => {
     expect(sentCode.testCases).toBeUndefined();
     expect(sentCode.sampleTestCases).toEqual([{ input: '1 2', expectedOutput: '3' }]);
     expect(sentCode.hiddenTestCount).toBe(1);
-    expect(JSON.stringify(res.body)).not.toContain('42');
+    expect(JSON.stringify(res.body)).not.toContain('HIDDEN_');
   });
 });
