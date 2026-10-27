@@ -8,6 +8,7 @@ import authRoutes from './routes/authRoutes.js';
 import questionRoutes from './routes/questionRoutes.js';
 import submissionRoutes from './routes/submissionRoutes.js';
 import executeRoutes from './routes/executeRoutes.js';
+import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 // Builds the Express app without side effects (no DB connection, no listening
 // port) so tests can import it and drive it with Supertest. server.js is the
@@ -35,6 +36,9 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/execute', executeRoutes);
 
+// Any /api/* path that didn't match a route above.
+app.use('/api', notFound);
+
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
   // This file lives in backend/src/, so the client build is two levels up.
@@ -50,5 +54,8 @@ if (process.env.NODE_ENV === 'production') {
     res.send('MockForge API is running...');
   });
 }
+
+// Must be registered last so it catches errors from everything above.
+app.use(errorHandler);
 
 export default app;
